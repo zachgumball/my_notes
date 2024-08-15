@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "802670210215",
+    "project_id": "mynotes-zynext",
+    "storage_bucket": "mynotes-zynext.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802670210215:android:9f6d5ec40019df5198bf82",
+        "android_client_info": {
+          "package_name": "com.example.mynotes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIYcfcYVWd8hfM1W0-l3GvKg39Ic5dYAk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
