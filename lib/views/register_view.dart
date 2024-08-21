@@ -1,8 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
-
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/views/login_view.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -57,15 +56,26 @@ class _RegisterViewState extends State<RegisterView> {
               final email = _email.text;
               final password = _password.text;
               try {
-                final UserCredential = await FirebaseAuth.instance
-                    .signInWithEmailAndPassword(
-                        email: email, password: password);
-                devtools.log(UserCredential.toString());
+                await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                  email: email,
+                  password: password,
+                );
+                final user = FirebaseAuth.instance.currentUser;
+                await user?.sendEmailVerification();
+                Navigator.of(context).pushNamed(verifyEmailRoute);
               } on FirebaseAuthException catch (e) {
-                if (e.code == 'user-not-found') {
-                  devtools.log('User not found');
-                } else if (e.code == 'wrong-password') {
-                  devtools.log('Wrong password');
+                if (e.code == 'weak-password') {
+                  await showErrorDialog(
+                    context,
+                    'Weak password',
+                  );
+                } else if (e.code == 'emai-already-in-use') {
+                  await showErrorDialog(
+                    context,
+                    'Email is already in use',
+                  );
+                } else if (e.code == 'invalid-email') {
+                  await showErrorDialog(context, 'Invalid email address');
                 }
               }
             },
