@@ -7,7 +7,7 @@ import 'package:mynotes/views/ipa_sub_materi.dart';
 import 'package:mynotes/views/login_view.dart';
 import 'package:mynotes/views/register_view.dart';
 import 'package:mynotes/views/verify_email_view.dart';
-import 'package:mynotes/views/materi/materi1.dart';
+import 'package:mynotes/views/materi/materi_1.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 

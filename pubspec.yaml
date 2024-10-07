@@ -40,7 +40,11 @@ dependencies:
   firebase_auth: ^5.1.4
   cloud_firestore: ^5.4.3
   firebase_analytics: ^11.2.1
-  auto_size_text:
+  auto_size_text: ^3.0.0
+  ar_flutter_plugin: 
+    path: C:\Users\harry\Documents\Important\ar_flutter_plugin-main
+  vector_math: ^2.1.0
+  ar_core: ^0.0.2+7
 
 dev_dependencies:
   flutter_test:
@@ -70,7 +74,13 @@ flutter:
     - assets/matahari.jpg
     - assets/ekosistem.jpg
     - assets/ipa.png
-    - assets/canvas_background/background_siang.jpg
+    - assets/background/background1.jpg
+    - assets/background/background2.png
+    - assets/models/lamp/scene.gltf
+    - assets/models/Chicken_01/Chicken_01.gltf
+    - assets/models/scene.glb
+    - assets/models/AnimatedCube.gltf
+    
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
