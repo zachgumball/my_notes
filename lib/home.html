@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Mata Pelajaran</title>
+    <style>
+        /* Style dasar untuk layout */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: #333;
+            padding: 10px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+        }
+        nav a:hover {
+            background-color: #45a049;
+        }
+        .container {
+            padding: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .visible {
+            display: block;
+        }
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+        }
+        input[type="text"], input[type="color"], button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .subtopic-input {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Dashboard MARI BELAJAR</h1>
+    </header>
+
+    <nav>
+        <a href="#" id="addSubjectLink">Tambahkan Mata Pelajaran</a>
+        <a href="#" id="addSubtopicLink">Tambahkan Sub Materi</a>
+    </nav>
+
+    <div class="container">
+        <!-- Halaman Tambah Mata Pelajaran -->
+        <div id="addSubjectPage" class="visible">
+            <h2>Tambah Mata Pelajaran</h2>
+            <form id="subjectForm">
+                <input type="text" id="nama" placeholder="Nama Mata Pelajaran" required>
+                <input type="text" id="ikon" placeholder="Ikon URL" required>
+                <label for="warna">Warna Kolom:</label>
+                <input type="color" id="warna" value="#FF5733">
+                <button type="submit">Tambah Mata Pelajaran</button>
+            </form>
+            <div id="message"></div>
+        </div>
+
+        <!-- Halaman Tabel Mata Pelajaran untuk Sub Materi -->
+        <div id="addSubtopicPage" class="hidden">
+            <h2>Pilih Mata Pelajaran</h2>
+            <table id="subjectTable">
+                <thead>
+                    <tr>
+                        <th>Nama Mata Pelajaran</th>
+                    </tr>
+                </thead>
+                <tbody id="subjectTableBody">
+                    <!-- Data akan diisi dengan Javascript -->
+                </tbody>
+            </table>
+            <div id="subtopicMessage"></div>
+        </div>
+
+        <!-- Halaman Tambah Sub Materi -->
+        <div id="subtopicDetailPage" class="hidden">
+            <h2>Tambah Sub Materi</h2>
+            <form id="subtopicDetailForm">
+                <div class="subtopic-input">
+                    <input type="text" id="subtopicNama" placeholder="Judul Sub Materi" required>
+                    <input type="text" id="subtopicGambar" placeholder="URL Gambar" required>
+                </div>
+                <button type="submit">Simpan Sub Materi</button>
+            </form>
+            <div id="subtopicMessage"></div>
+            <h3>Tambah Kolom Tambahan</h3>
+            <div id="dynamicColumns"></div>
+            <button type="button" id="addColumnButton">Tambah Kolom</button>
+            <button type="button" id="saveColumnsButton">Simpan Kolom</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Konfigurasi Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, setDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTdva2L7ofrImgJ3OmFwskWEZqaZbuRoE",
+            authDomain: "mynotes-zynext.firebaseapp.com",
+            projectId: "mynotes-zynext",
+            storageBucket: "mynotes-zynext.appspot.com",
+            messagingSenderId: "802670210215",
+            appId: "1:802670210215:web:cedfff9cba00c3d798bf82"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Fungsi untuk menambahkan mata pelajaran
+        document.getElementById('subjectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nama = document.getElementById('nama').value;
+            const ikon = document.getElementById('ikon').value;
+            const warna = document.getElementById('warna').value;
+
+            try {
+                await setDoc(doc(db, 'mata_pelajaran', nama), {
+                    ikon: ikon,
+                    warna: warna
+                });
+                document.getElementById('message').innerText = 'Mata pelajaran berhasil ditambahkan!';
+                document.getElementById('subjectForm').reset();
+            } catch (error) {
+                console.error('Error adding document: ', error);
+                document.getElementById('message').innerText = 'Terjadi kesalahan saat menambahkan mata pelajaran.';
+            }
+        });
+
+        // Fungsi untuk menampilkan tabel mata pelajaran
+        document.getElementById('addSubtopicLink').addEventListener('click', async () => {
+            document.getElementById('addSubtopicPage').classList.add('visible');
+            document.getElementById('addSubtopicPage').classList.remove('hidden');
+            document.getElementById('addSubjectPage').classList.add('hidden');
+            document.getElementById('addSubjectPage').classList.remove('visible');
+
+            const subjectTableBody = document.getElementById('subjectTableBody');
+            subjectTableBody.innerHTML = '';
+
+            const querySnapshot = await getDocs(collection(db, 'mata_pelajaran'));
+            querySnapshot.forEach((doc) => {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.textContent = doc.id; 
+                cell.addEventListener('click', () => {
+                    showSubtopicForm(doc.id);
+                });
+                row.appendChild(cell);
+                subjectTableBody.appendChild(row);
+            });
+        });
+
+        // Fungsi untuk menampilkan form tambah sub materi setelah memilih mata pelajaran
+        function showSubtopicForm(subjectId) {
+            document.getElementById('addSubtopicPage').classList.add('hidden');
+            document.getElementById('subtopicDetailPage').classList.add('visible');
+            document.getElementById('subtopicDetailForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const subtopicNama = document.getElementById('subtopicNama').value;
+                const subtopicGambar = document.getElementById('subtopicGambar').value;
+
+                try {
+                    await addDoc(collection(db, `mata_pelajaran/${subjectId}/sub_materi`), {
+                        judul: subtopicNama,
+                        gambar: subtopicGambar,
+                    });
+                    document.getElementById('subtopicMessage').innerText = 'Sub materi berhasil ditambahkan!';
+                    document.getElementById('subtopicDetailForm').reset();
+                } catch (error) {
+                    console.error('Error adding subtopic: ', error);
+                    document.getElementById('subtopicMessage').innerText = 'Terjadi kesalahan saat menambahkan sub materi.';
+                }
+            });
+        }
+
+        // Fungsi untuk menambahkan kolom tambahan
+        document.getElementById('addColumnButton').addEventListener('click', () => {
+            const dynamicColumns = document.getElementById('dynamicColumns');
+            const fieldDiv = document.createElement('div');
+            fieldDiv.innerHTML = `<input type="text" placeholder="Nama Kolom" required>`;
+            dynamicColumns.appendChild(fieldDiv);
+        });
+
+        // Fungsi untuk menyimpan kolom tambahan (belum diimplementasikan)
+        document.getElementById('saveColumnsButton').addEventListener('click', () => {
+            // Tambahkan logika untuk menyimpan kolom tambahan ke Firestore
+            alert('Fitur ini belum diimplementasikan.');
+        });
+    </script>
+</body>
+</html>

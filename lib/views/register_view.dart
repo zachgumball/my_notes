@@ -39,12 +39,8 @@ class _RegisterViewState extends State<RegisterView> {
     final email = _email.text;
     final password = _password.text;
     final name = _name.text; // Ambil nama
-    final className = _class.text; // Ambil kelas
 
-    if (name.isEmpty ||
-        className.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
       await showErrorDialog(
         context,
         'Nama, kelas, email, dan password tidak boleh kosong',
@@ -74,7 +70,6 @@ class _RegisterViewState extends State<RegisterView> {
       if (user != null) {
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'name': name,
-          'class': className,
           'email': email,
         });
       }
@@ -150,7 +145,7 @@ class _RegisterViewState extends State<RegisterView> {
                   enableSuggestions: false,
                   autocorrect: false,
                   decoration: InputDecoration(
-                    hintText: 'Masukkan nama Anda',
+                    hintText: 'Masukkan nama kamu',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -160,23 +155,8 @@ class _RegisterViewState extends State<RegisterView> {
                     contentPadding: const EdgeInsets.all(16),
                   ),
                 ),
-                const SizedBox(height: 16),
                 // Kolom untuk kelas
-                TextField(
-                  controller: _class,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    hintText: 'Masukkan kelas Anda (misalnya, 5A)',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                ),
+
                 const SizedBox(height: 16),
                 // Kolom untuk email
                 TextField(

@@ -1,13 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/firebase_options.dart';
 import 'package:mynotes/views/ipa_sub_materi.dart';
+import 'package:mynotes/views/leaderboard/ranking_views.dart';
 import 'package:mynotes/views/login_view.dart';
 import 'package:mynotes/views/register_view.dart';
 import 'package:mynotes/views/verify_email_view.dart';
-import 'package:mynotes/views/materi/materi_1.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         registerRoute: (context) => const RegisterView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
         ipaRoute: (context) => const IpaSubMateri(),
-        materi1Route: (context) => const Materi1(),
+        leaderboardRoute: (context) => const LeaderboardViews(),
       },
     );
   }
@@ -79,6 +80,7 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   String _name = '';
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -103,14 +105,31 @@ class _NotesViewState extends State<NotesView> {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) {
+    if (hour < 10) {
       return 'Selamat Pagi, selamat beraktifitas!';
-    } else if (hour < 17) {
+    } else if (hour < 15) {
       return 'Selamat Siang, selamat beraktifitas!';
     } else if (hour < 19) {
       return 'Selamat Sore, selamat beristirahat!';
     } else {
       return 'Selamat Malam, selamat beristirahat!';
+    }
+  }
+
+  // Fungsi untuk menambahkan mata pelajaran baru ke Firestore
+  Future<void> addMataPelajaran(String nama, String ikon, String warna) async {
+    CollectionReference pelajaran =
+        FirebaseFirestore.instance.collection('mata_pelajaran');
+
+    try {
+      await pelajaran.add({
+        'nama': nama,
+        'ikon': ikon,
+        'warna': warna,
+      });
+      print('Mata Pelajaran berhasil ditambahkan!');
+    } catch (e) {
+      print('Gagal menambahkan mata pelajaran: $e');
     }
   }
 
@@ -143,15 +162,8 @@ class _NotesViewState extends State<NotesView> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               ListTile(
-                                leading: const Icon(Icons.settings),
-                                title: const Text('Pengaturan'),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              ListTile(
                                 leading: const Icon(Icons.help),
-                                title: const Text('Bantuan'),
+                                title: const Text('Tentang'),
                                 onTap: () {
                                   Navigator.of(context).pop();
                                 },
@@ -224,151 +236,84 @@ class _NotesViewState extends State<NotesView> {
                   ),
                   const SizedBox(height: 16),
                   Expanded(
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      childAspectRatio: 1.5,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              PageRouteBuilder(
-                                pageBuilder:
-                                    (context, animation, secondaryAnimation) =>
-                                        const IpaSubMateri(),
-                                transitionsBuilder: (context, animation,
-                                    secondaryAnimation, child) {
-                                  const begin = Offset(1.0, 0.0);
-                                  const end = Offset.zero;
-                                  const curve = Curves.easeInOut;
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('mata_pelajaran')
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
 
-                                  var tween =
-                                      Tween(begin: begin, end: end).chain(
-                                    CurveTween(curve: curve),
-                                  );
+                        final pelajaranDocs = snapshot.data!.docs;
 
-                                  return SlideTransition(
-                                    position: animation.drive(tween),
-                                    child: child,
-                                  );
-                                },
+                        // Menampilkan pesan jika tidak ada data
+                        if (pelajaranDocs.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'Belum ada item yang ditambahkan',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey[600], // Mengatur warna teks
+                              ),
+                            ),
+                          );
+                        }
+
+                        return GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: pelajaranDocs.length,
+                          itemBuilder: (context, index) {
+                            final pelajaran = pelajaranDocs[index];
+                            final nama = pelajaran['nama'];
+                            final ikon = pelajaran['ikon'];
+                            final warna = pelajaran['warna'];
+
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).pushNamed(
+                                  ipaRoute,
+                                  arguments: {
+                                    'nama': nama,
+                                    'ikon': ikon,
+                                    'warna': warna,
+                                  },
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Color(
+                                      int.parse('0xFF${warna.substring(1)}')),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(getIconFromName(ikon),
+                                          size: 50, color: Colors.white),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        nama,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             );
                           },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Colors.red, Colors.orange],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.pets,
-                                      size: 50, color: Colors.white),
-                                  SizedBox(height: 10),
-                                  AutoSizeText(
-                                    'Ilmu Pengetahuan Alam',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                    maxLines: 1,
-                                    minFontSize: 10,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Colors.blue, Colors.lightBlueAccent],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.public,
-                                    size: 50, color: Colors.white),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Matematika',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Colors.green, Colors.lightGreenAccent],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.book, size: 50, color: Colors.white),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Bahasa Indonesia',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Colors.purple, Colors.pink],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.language,
-                                    size: 50, color: Colors.white),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Bahasa Inggris',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -377,11 +322,47 @@ class _NotesViewState extends State<NotesView> {
           ),
         ],
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.leaderboard),
+            label: 'Ranking',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+          if (index == 1) {
+            // Navigasi ke halaman leaderboard
+            Navigator.of(context).pushNamed(leaderboardRoute);
+          }
+        },
+      ),
     );
   }
 
-  Future<bool> showLogOutDialog(BuildContext context) async {
-    return showDialog(
+  IconData getIconFromName(String iconName) {
+    switch (iconName) {
+      case 'tree':
+        return CupertinoIcons.tree;
+      case 'paw':
+        return CupertinoIcons.paw;
+      case 'book':
+        return CupertinoIcons.book;
+      default:
+        return CupertinoIcons.question_circle;
+    }
+  }
+
+  Future<bool> showLogOutDialog(BuildContext context) {
+    return showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(

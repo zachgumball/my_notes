@@ -1,15 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:mynotes/views/materi/materi_1.dart';
-import 'package:mynotes/views/materi/materi_2.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class IpaSubMateri extends StatefulWidget {
-  const IpaSubMateri({super.key});
+class SubMateriView extends StatefulWidget {
+  const SubMateriView({super.key});
 
   @override
-  State<IpaSubMateri> createState() => _IpaSubMateriState();
+  State<SubMateriView> createState() => _SubMateriState();
 }
 
-class _IpaSubMateriState extends State<IpaSubMateri> {
+class _SubMateriState extends State<SubMateriView> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Method untuk mengambil data judul dari koleksi sub_materi di dalam IPA
+  Future<String> getJudulSubMateri() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+          .collection('IPA')
+          .doc(
+              'yourDocumentId') // ganti dengan ID dokumen yang benar di koleksi IPA
+          .collection('sub_materi')
+          .limit(1) // mengambil dokumen pertama
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        var data = snapshot.docs.first.data();
+        return data['judul'] ??
+            'IPA Sub Materi'; // Mengembalikan judul atau default value
+      } else {
+        return 'IPA Sub Materi'; // Jika tidak ada data
+      }
+    } catch (e) {
+      print('Error: $e');
+      return 'IPA Sub Materi'; // Jika terjadi error
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -22,8 +47,21 @@ class _IpaSubMateriState extends State<IpaSubMateri> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Menggunakan FutureBuilder untuk mengambil data judul dari Firestore
       appBar: AppBar(
-        title: const Text('IPA Sub Materi'),
+        title: FutureBuilder<String>(
+          future: getJudulSubMateri(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Text('Loading...');
+            } else if (snapshot.hasError) {
+              return const Text('Error');
+            } else if (snapshot.hasData) {
+              return Text(snapshot.data!); // Tampilkan judul dari Firestore
+            }
+            return const Text('IPA Sub Materi');
+          },
+        ),
         backgroundColor: const Color.fromARGB(0, 5, 233, 237),
         elevation: 0,
       ),
@@ -94,7 +132,7 @@ class _IpaSubMateriState extends State<IpaSubMateri> {
                     Navigator.of(context).push(
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) =>
-                            const Materi2(),
+                            const MateriEkosistem(),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
                           const begin = Offset(1.0, 0.0);
