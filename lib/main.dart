@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/firebase_options.dart';
-import 'package:mynotes/views/ipa_sub_materi.dart';
+import 'package:mynotes/views/sub_materi.dart';
 import 'package:mynotes/views/leaderboard/ranking_views.dart';
 import 'package:mynotes/views/login_view.dart';
 import 'package:mynotes/views/register_view.dart';
@@ -34,7 +34,11 @@ class MyApp extends StatelessWidget {
         notesRoute: (context) => const NotesView(),
         registerRoute: (context) => const RegisterView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
-        ipaRoute: (context) => const IpaSubMateri(),
+        subMateriRoute: (context) {
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, dynamic>;
+          return SubMateri(subjectName: args['subjectName']);
+        },
         leaderboardRoute: (context) => const LeaderboardViews(),
       },
     );
@@ -248,14 +252,13 @@ class _NotesViewState extends State<NotesView> {
 
                         final pelajaranDocs = snapshot.data!.docs;
 
-                        // Menampilkan pesan jika tidak ada data
                         if (pelajaranDocs.isEmpty) {
                           return Center(
                             child: Text(
                               'Belum ada item yang ditambahkan',
                               style: TextStyle(
                                 fontSize: 20,
-                                color: Colors.grey[600], // Mengatur warna teks
+                                color: Colors.grey[600],
                               ),
                             ),
                           );
@@ -278,11 +281,12 @@ class _NotesViewState extends State<NotesView> {
                             return GestureDetector(
                               onTap: () {
                                 Navigator.of(context).pushNamed(
-                                  ipaRoute,
+                                  subMateriRoute,
                                   arguments: {
                                     'nama': nama,
                                     'ikon': ikon,
                                     'warna': warna,
+                                    'subjectName': nama
                                   },
                                 );
                               },
@@ -299,12 +303,20 @@ class _NotesViewState extends State<NotesView> {
                                       Icon(getIconFromName(ikon),
                                           size: 50, color: Colors.white),
                                       const SizedBox(height: 10),
-                                      Text(
+                                      AutoSizeText(
                                         nama,
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 18,
+                                          fontWeight: FontWeight.bold,
                                         ),
+                                        maxLines: 1, // Hanya 1 baris untuk teks
+                                        minFontSize: 14, // Ukuran font minimal
+                                        maxFontSize: 18, // Ukuran font maksimal
+                                        overflow: TextOverflow
+                                            .ellipsis, // Menggunakan ellipsis untuk teks panjang
+                                        textAlign:
+                                            TextAlign.center, // Rata tengah
                                       ),
                                     ],
                                   ),
