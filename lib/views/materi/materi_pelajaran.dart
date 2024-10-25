@@ -4,19 +4,67 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 
-class Materi1 extends StatefulWidget {
-  const Materi1({super.key});
+class MateriPelajaran extends StatefulWidget {
+  final String teksKolom;
+  final String gambarKolom;
+  final String materiDocumentId; // Document ID for mata_pelajaran
+  final String subMateriDocumentId; // Document ID for sub_materi
+  final String isiMateriId; // Document ID for isi_materi
+
+  const MateriPelajaran({
+    Key? key,
+    required this.teksKolom,
+    required this.gambarKolom,
+    required this.materiDocumentId, // Required parameter for materiDocumentId
+    required this.subMateriDocumentId, // Required parameter for subMateriDocumentId
+    required this.isiMateriId, // Required parameter for isiMateriId
+  }) : super(key: key);
 
   @override
-  _Materi1State createState() => _Materi1State();
+  _MateriPelajaranState createState() => _MateriPelajaranState();
 }
 
-class _Materi1State extends State<Materi1> {
+class _MateriPelajaranState extends State<MateriPelajaran> {
+  late Future<String?> isiMateriFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch isiMateri from Firestore
+    isiMateriFuture = fetchIsiMateri(widget.materiDocumentId,
+        widget.subMateriDocumentId, widget.isiMateriId);
+  }
+
+  Future<String?> fetchIsiMateri(
+      String materiDocId, String subMateriDocId, String isiMateriId) async {
+    try {
+      // Use the parameters for Firestore query
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('mata_pelajaran')
+          .doc(materiDocId)
+          .collection('sub_materi')
+          .doc(subMateriDocId)
+          .collection('isi_materi')
+          .doc(isiMateriId)
+          .get();
+
+      if (snapshot.exists) {
+        return snapshot[
+            'isiMateri']; // Ensure 'isiMateri' matches your Firestore field name
+      } else {
+        return null; // Document does not exist
+      }
+    } catch (e) {
+      print('Error fetching isiMateri: $e');
+      return null; // Handle the error appropriately
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cahaya dan Bunyi'),
+        title: Text(widget.teksKolom),
       ),
       body: Stack(
         children: [
@@ -37,17 +85,23 @@ class _Materi1State extends State<Materi1> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      'assets/matahari.jpg',
+                    child: Image.network(
+                      widget.gambarKolom,
                       width: 370,
                       height: 200,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.broken_image,
+                          size: 100,
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Mengenal Cahaya dan Bunyi',
-                    style: TextStyle(
+                  Text(
+                    widget.teksKolom,
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
@@ -57,225 +111,37 @@ class _Materi1State extends State<Materi1> {
                   const SizedBox(height: 16),
                   const Divider(thickness: 2, color: Colors.grey),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Cahaya adalah gelombang elektromagnetik yang bisa kita lihat dengan mata. '
-                          'Sumber cahaya terbesar yang kita kenal adalah Matahari. Tanpa cahaya, dunia akan gelap, '
-                          'dan kita tidak bisa melihat benda-benda di sekitar kita.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Sifat-sifat Cahaya:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                  FutureBuilder<String?>(
+                    future: isiMateriFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (!snapshot.hasData || snapshot.data == null) {
+                        return const Text('No data found');
+                      } else {
+                        return Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                              ),
+                            ],
                           ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '1. Cahaya Merambat Lurus\n'
-                          'Cahaya selalu bergerak dalam garis lurus. Contohnya adalah sinar matahari yang masuk melalui jendela.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '2. Cahaya Dapat Dipantulkan\n'
-                          'Cahaya bisa memantul jika mengenai permukaan yang halus dan mengkilap, seperti cermin.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '3. Cahaya Dapat Dibiaskan\n'
-                          'Cahaya bisa dibelokkan saat melewati benda bening seperti air atau kaca. Contohnya adalah saat pensil terlihat bengkok di dalam air.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Manfaat Cahaya:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          child: Text(
+                            snapshot.data!,
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.justify,
                           ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '- Cahaya membantu kita melihat benda-benda di sekitar.\n'
-                          '- Cahaya matahari memberikan panas yang menjaga kita tetap hangat.\n'
-                          '- Tumbuhan menggunakan cahaya untuk membuat makanan melalui proses fotosintesis.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Contoh Sumber Cahaya: Lampu Belajar',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Salah satu contoh sumber cahaya buatan adalah lampu belajar. Lampu ini membantu kita belajar saat malam hari atau di ruangan gelap. '
-                          'Lampu belajar bisa mengarahkan cahaya langsung ke buku atau benda lain yang kita perlukan.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Ayo, lihat lampu belajar dalam bentuk 3D di bawah ini!',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ARViewScreenLamp(),
-                        ),
-                      );
+                        );
+                      }
                     },
-                    child: const Text('Tampilkan Lampu Belajar 3D dalam AR'),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Mengenal Bunyi',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Bunyi adalah getaran yang merambat melalui udara, air, atau benda padat. Kita bisa mendengar bunyi ketika getaran ini mencapai telinga kita. '
-                          'Sumber bunyi bisa berasal dari berbagai benda, seperti alat musik, suara manusia, atau suara kendaraan.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Sifat-sifat Bunyi:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '1. Bunyi Merambat Melalui Media\n'
-                          'Bunyi tidak bisa bergerak tanpa media perantara. Udara adalah media yang paling umum, tapi bunyi juga bisa merambat melalui air atau benda padat.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '2. Bunyi Dapat Dipantulkan\n'
-                          'Bunyi dapat memantul seperti cahaya, contohnya adalah gema yang terjadi ketika kita berteriak di dalam gua atau ruangan besar.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '3. Bunyi Dapat Dibiaskan\n'
-                          'Bunyi bisa berubah arah ketika melewati media yang berbeda, mirip seperti cahaya. Ini disebut pembiasan bunyi.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Manfaat Bunyi:',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '- Kita menggunakan bunyi untuk berbicara dan berkomunikasi.\n'
-                          '- Musik yang kita dengarkan adalah hasil dari getaran bunyi.\n'
-                          '- Bunyi juga membantu kita mengetahui arah, seperti saat mendengar suara kendaraan yang mendekat.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Contoh Sumber Bunyi: Speaker Musik',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Speaker musik adalah perangkat yang mengubah sinyal listrik menjadi suara. Speaker ini digunakan untuk mendengarkan musik atau suara lainnya dengan lebih keras. '
-                          'Kita bisa menghubungkan speaker ke berbagai perangkat seperti ponsel atau komputer untuk memperdengarkan musik di sekitar kita.',
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.justify,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Ayo, lihat speaker dalam bentuk 3D di bawah ini!',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ARViewScreenSpeaker(),
-                        ),
-                      );
-                    },
-                    child: const Text('Tampilkan Speaker 3D dalam AR'),
                   ),
                 ],
               ),

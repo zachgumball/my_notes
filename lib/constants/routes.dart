@@ -3,6 +3,5 @@ const registerRoute = '/register/';
 const notesRoute = '/notes/';
 const verifyEmailRoute = '/verify/';
 const subMateriRoute = '/sub_materi/';
-const materi1Route = '/materi1/';
-const materi2Route = '/materi2/';
+const materiPelajaranRoute = '/materi_pelajaran/';
 const leaderboardRoute = '/leaderboard/';

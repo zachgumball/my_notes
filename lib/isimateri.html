@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isi Materi</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #edf1eb;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #formContainer {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #007BFF;
+        }
+
+        .form-actions {
+            text-align: right;
+            margin-top: 15px;
+        }
+
+        .context-menu {
+            display: none; /* Tersembunyi secara default */
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .context-menu button {
+            background: none;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+        }
+
+        .context-menu button:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Isi Materi</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="quiz.html">Quiz</a>
+    </nav>
+
+    <div class="container">
+        <h2>Daftar Mata Pelajaran</h2>
+        <table id="subjectTable">
+            <thead>
+                <tr>
+                    <th style="color: #007BFF;">Nama Mata Pelajaran</th>
+                </tr>
+            </thead>
+            <tbody id="subjectTableBody">
+                <!-- Data akan diisi dengan Javascript -->
+            </tbody>
+        </table>
+
+        <div id="subtopicTableContainer" class="hidden">
+            <h3>Detail Sub Materi</h3>
+            <table id="subtopicTable">
+                <thead>
+                    <tr>
+                        <th style="color: #007BFF;">Judul Sub Materi</th>
+                        <th style="color: #007BFF;">Teks Kolom</th>
+                    </tr>
+                </thead>
+                <tbody id="subtopicTableBody">
+                    <!-- Data akan diisi dengan Javascript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="formContainer" class="hidden">
+            <h3>Tambah Isi Materi</h3>
+            <form id="contentForm">
+                <label for="contentInput">Isi Materi:</label>
+                <textarea id="contentInput" rows="10" required></textarea>
+                <div class="form-actions">
+                    <button type="submit">Simpan</button>
+                </div>
+                <p id="successMessage" class="hidden" style="color: green; margin-top: 10px;">Isi materi berhasil disimpan!</p> <!-- Notifikasi berhasil -->
+            </form>
+
+            <div id="contextMenu" class="context-menu hidden">
+                <button id="boldBtn">Bold</button>
+                <button id="italicBtn">Italic</button>
+                <button id="clearFormattingBtn">Clear Formatting</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Konfigurasi Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTdva2L7ofrImgJ3OmFwskWEZqaZbuRoE",
+            authDomain: "mynotes-zynext.firebaseapp.com",
+            projectId: "mynotes-zynext",
+            storageBucket: "mynotes-zynext.appspot.com",
+            messagingSenderId: "802670210215",
+            appId: "1:802670210215:web:cedfff9cba00c3d798bf82"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let selectedSubtopicId = '';
+        let selectedSubjectId = '';
+        let selectedTextId = ''; // Menyimpan ID teks kolom yang dipilih
+
+        // Fungsi untuk menampilkan tabel mata pelajaran
+        async function displaySubjects() {
+            const subjectTableBody = document.getElementById('subjectTableBody');
+            subjectTableBody.innerHTML = '';
+
+            const querySnapshot = await getDocs(collection(db, 'mata_pelajaran'));
+            querySnapshot.forEach((doc) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td><button class="select-subject" data-id="${doc.id}">${doc.id}</button></td>`;
+                subjectTableBody.appendChild(row);
+            });
+
+            const selectButtons = document.querySelectorAll('.select-subject');
+            selectButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    selectedSubjectId = button.getAttribute('data-id'); // Simpan ID mata pelajaran terpilih
+                    displaySubtopics(selectedSubjectId);
+                });
+            });
+        }
+
+        // Fungsi untuk menampilkan sub materi dan teks kolom
+        async function displaySubtopics(subjectId) {
+            document.getElementById('subtopicTableContainer').classList.remove('hidden');
+            const subtopicTableBody = document.getElementById('subtopicTableBody');
+            subtopicTableBody.innerHTML = '';
+
+            const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
+            const subtopicSnapshot = await getDocs(subtopicRef);
+            
+            subtopicSnapshot.forEach(doc => {
+                const data = doc.data();
+                const subtopicId = doc.id;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${subtopicId}</td>
+                    <td>
+                        <ul>
+                            ${Object.keys(data).filter(key => key.startsWith('teks_kolom')).map(key => `
+                                <li>
+                                    <button class="select-text" data-subtopic-id="${subtopicId}" data-key="${key}" data-text="${data[key]}">${data[key]}</button>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </td>
+                `;
+                subtopicTableBody.appendChild(row);
+            });
+
+            const selectTextButtons = document.querySelectorAll('.select-text');
+            selectTextButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    selectedSubtopicId = button.getAttribute('data-subtopic-id');
+                    selectedTextId = button.getAttribute('data-text'); // Menyimpan teks kolom yang dipilih
+                    showForm();
+                });
+            });
+        }
+
+        // Fungsi untuk menampilkan form
+        async function showForm() {
+            document.getElementById('formContainer').classList.remove('hidden');
+
+            // Ambil data isiMateri dari Firestore jika sudah ada
+            const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', selectedTextId);
+            
+            try {
+                const isiMateriDoc = await getDoc(isiMateriRef);
+                if (isiMateriDoc.exists()) {
+                    document.getElementById('contentInput').value = isiMateriDoc.data().isiMateri;
+                } else {
+                    document.getElementById('contentInput').value = ''; // Reset jika tidak ada
+                }
+            } catch (error) {
+                console.error('Error fetching isiMateri:', error);
+            }
+        }
+
+        // Event listener untuk form submit
+        document.getElementById('contentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const contentValue = document.getElementById('contentInput').value;
+
+            // Simpan isiMateri ke Firestore
+            const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', selectedTextId);
+            await setDoc(isiMateriRef, { isiMateri: contentValue });
+
+            // Tampilkan notifikasi berhasil
+            const successMessage = document.getElementById('successMessage');
+            successMessage.classList.remove('hidden');
+            setTimeout(() => {
+                successMessage.classList.add('hidden');
+            }, 3000); // Sembunyikan setelah 3 detik
+
+            // Reset textarea
+            document.getElementById('contentInput').value = '';
+        });
+
+        // Konfigurasi menu konteks
+        const contextMenu = document.getElementById('contextMenu');
+        const contentInput = document.getElementById('contentInput');
+
+        contentInput.addEventListener('contextmenu', (event) => {
+            event.preventDefault(); // Mencegah menu konteks default
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${event.pageX}px`; // Posisi menu konteks
+            contextMenu.style.top = `${event.pageY}px`;
+        });
+
+        // Menyembunyikan menu konteks ketika klik di luar
+        window.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+
+        // Menambahkan event listener untuk tombol di menu konteks
+        document.getElementById('boldBtn').addEventListener('click', () => {
+            applyFormat('bold');
+        });
+
+        document.getElementById('italicBtn').addEventListener('click', () => {
+            applyFormat('italic');
+        });
+
+        document.getElementById('clearFormattingBtn').addEventListener('click', () => {
+            contentInput.value = contentInput.value; // Menghapus format
+        });
+
+        // Fungsi untuk menerapkan format teks
+        function applyFormat(format) {
+            const start = contentInput.selectionStart;
+            const end = contentInput.selectionEnd;
+            let selectedText = contentInput.value.substring(start, end);
+            
+            if (format === 'bold') {
+                selectedText = `**${selectedText}**`; // Menggunakan tanda ** untuk bold
+            } else if (format === 'italic') {
+                selectedText = `*${selectedText}*`; // Menggunakan tanda * untuk italic
+            }
+
+            contentInput.value = contentInput.value.substring(0, start) + selectedText + contentInput.value.substring(end);
+            contentInput.focus(); // Memfokuskan kembali ke textarea
+            contextMenu.style.display = 'none'; // Menyembunyikan menu konteks
+        }
+
+        // Memanggil fungsi untuk menampilkan mata pelajaran
+        displaySubjects();
+    </script>
+</body>
+</html>

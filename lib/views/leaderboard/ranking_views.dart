@@ -21,7 +21,17 @@ class LeaderboardViews extends StatelessWidget {
             return const Center(child: Text('Tidak ada data leaderboard.'));
           }
 
-          final leaderboardData = snapshot.data!.docs;
+          // Filter data to include only users with complete scores
+          final leaderboardData = snapshot.data!.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data.containsKey('skor_cahaya_bunyi') &&
+                data.containsKey('skor_harmoni_ekosistem');
+          }).toList();
+
+          if (leaderboardData.isEmpty) {
+            return const Center(
+                child: Text('Tidak ada data leaderboard dengan skor lengkap.'));
+          }
 
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
@@ -29,14 +39,6 @@ class LeaderboardViews extends StatelessWidget {
             itemBuilder: (context, index) {
               final data =
                   leaderboardData[index].data() as Map<String, dynamic>;
-
-              // Tambahkan pengecekan apakah data memuat field skor_cahaya_bunyi dan skor_harmoni_ekosistem
-              if (!data.containsKey('skor_cahaya_bunyi') ||
-                  !data.containsKey('skor_harmoni_ekosistem')) {
-                return const Center(
-                  child: Text('Data skor tidak lengkap.'),
-                );
-              }
 
               final name = data['name'] ?? 'Unknown';
               final skorCahayaBunyi = data['skor_cahaya_bunyi'] ?? 0;

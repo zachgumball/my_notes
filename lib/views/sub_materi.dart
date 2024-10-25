@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mynotes/views/materi/materi_pelajaran.dart';
 
 class SubMateri extends StatefulWidget {
   final String subjectName; // Add this line
@@ -27,7 +28,7 @@ class _SubMateriState extends State<SubMateri> {
       // Use the subject name to get the corresponding document
       QuerySnapshot subMateriSnapshot = await _firestore
           .collection('mata_pelajaran')
-          .doc(widget.subjectName) // Use subjectName from constructor
+          .doc(widget.subjectName)
           .collection('sub_materi')
           .get();
 
@@ -35,8 +36,8 @@ class _SubMateriState extends State<SubMateri> {
         var document = subMateriSnapshot.docs.first;
 
         setState(() {
-          _title = widget.subjectName; // Set the title to the subject name
-          _imageUrl = document['gambar'] ?? ''; // Get the image from Firestore
+          _title = widget.subjectName;
+          _imageUrl = document['gambar'] ?? '';
         });
 
         // Continue fetching teks_kolom and gambar_kolom
@@ -52,10 +53,7 @@ class _SubMateriState extends State<SubMateri> {
             break;
           }
 
-          _items.add({
-            'teks_kolom': teks_kolom,
-            'gambar_kolom': gambar_kolom,
-          });
+          _items.add({'teks_kolom': teks_kolom, 'gambar_kolom': gambar_kolom});
 
           index++;
         }
@@ -126,16 +124,40 @@ class _SubMateriState extends State<SubMateri> {
                     itemCount: _items.length,
                     itemBuilder: (context, index) {
                       return GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          // Tambahkan navigasi ke materiPelajaranRoute saat item di-tap
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                // Assuming isiMateriId can be obtained from the document or based on teks_kolom
+                                String isiMateriId =
+                                    _items[index]['teks_kolom'] ?? '';
+
+                                return MateriPelajaran(
+                                  teksKolom: _items[index]['teks_kolom'] ?? '',
+                                  gambarKolom:
+                                      _items[index]['gambar_kolom'] ?? '',
+                                  materiDocumentId: widget
+                                      .subjectName, // Pass the subject name as materiDocumentId
+                                  subMateriDocumentId: widget
+                                      .subjectName, // Pass the specific subMateriDocumentId
+                                  isiMateriId:
+                                      isiMateriId, // Pass the isiMateriId based on the teks_kolom
+                                );
+                              },
+                            ),
+                          );
+                        },
                         child: _buildItem(
                           image: _items[index]['gambar_kolom'] ?? '',
-                          title: _items[index]['teks_kolom'] ??
-                              '', // Perbaikan di sini
+                          title: _items[index]['teks_kolom'] ?? '',
                         ),
                       );
                     },
                   ),
                 ),
+
                 const SizedBox(height: 16),
               ],
             ),
@@ -147,9 +169,7 @@ class _SubMateriState extends State<SubMateri> {
 
   Widget _buildItem({required String image, required String title}) {
     return Padding(
-      // Menambahkan Padding di sini
-      padding: const EdgeInsets.symmetric(
-          horizontal: 16.0), // Sesuaikan nilai padding sesuai kebutuhan
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
         decoration: BoxDecoration(
