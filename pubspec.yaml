@@ -46,6 +46,8 @@ dependencies:
   camera: 0.9.8+1
   permission_handler: ^11.3.1
   flutter_colorpicker: ^1.1.0
+  flutter_widget_from_html: ^0.15.2
+  reflectable: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -71,15 +73,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/cahaya.png
-    - assets/matahari.jpg
-    - assets/ekosistem.jpg
-    - assets/ipa.png
     - assets/background/background1.jpg
     - assets/background/background2.png
-    - assets/models/lampu.glb
-    - assets/models/speaker.glb
-    - assets/models/elang.glb
     
 
   # An image asset can refer to one or more resolution-specific "variants", see

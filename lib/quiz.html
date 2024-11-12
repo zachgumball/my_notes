@@ -8,24 +8,42 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #e0e0e0;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .page-container {
+            max-width: 900px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        header, nav, .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
         }
 
         header {
-            text-align: center;
             margin-bottom: 20px;
         }
 
-        nav {
-            margin-bottom: 20px;
-            text-align: center;
+        nav a {
+            margin: 0 10px;
+            color: #f8f9f9;
+            text-decoration: none;
         }
+
 
         .container {
-            max-width: 800px;
-            margin: 0 auto;
             background: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -104,52 +122,54 @@
 </head>
 <body>
 
-    <header>
-        <h1>Tambah Pertanyaan</h1>
-    </header>
+    <div class="page-container">
+        <header>
+            <h1>Tambah Pertanyaan</h1>
+        </header>
 
-    <nav>
-        <a href="index.html">Dashboard</a>
-        <a href="isimateri.html">Isi Materi</a>
-    </nav>
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="isimateri.html">Isi Materi</a>
+        </nav>
 
-    <div class="container">
-        <h2>Daftar Mata Pelajaran</h2>
-        <table id="subjectTable">
-            <thead>
-                <tr>
-                    <th style="color: #007BFF;">Nama Mata Pelajaran</th>
-                </tr>
-            </thead>
-            <tbody id="subjectTableBody">
-                <!-- Data akan diisi dengan Javascript -->
-            </tbody>
-        </table>
-
-        <div id="subtopicTableContainer" class="hidden">
-            <h3>Detail Sub Materi</h3>
-            <table id="subtopicTable">
+        <div class="container">
+            <h2>Daftar Mata Pelajaran</h2>
+            <table id="subjectTable">
                 <thead>
                     <tr>
-                        <th style="color: #007BFF;">Judul Sub Materi</th>
-                        <th style="color: #007BFF;">Teks Kolom</th>
+                        <th style="color: #007BFF;">Nama Mata Pelajaran</th>
                     </tr>
                 </thead>
-                <tbody id="subtopicTableBody">
+                <tbody id="subjectTableBody">
                     <!-- Data akan diisi dengan Javascript -->
                 </tbody>
             </table>
-        </div>
 
-        <div id="formContainer" class="hidden">
-            <h3>Form Pertanyaan dan Pilihan Ganda</h3>
-            <form id="questionForm">
-                <div id="questionsContainer"></div>
-                <div class="form-actions">
-                    <button type="submit">Simpan</button>
-                </div>
-                <p id="successMessage" class="success-message hidden">Pertanyaan berhasil disimpan!</p>
-            </form>
+            <div id="subtopicTableContainer" class="hidden">
+                <h3>Detail Sub Materi</h3>
+                <table id="subtopicTable">
+                    <thead>
+                        <tr>
+                            <th style="color: #007BFF;">Judul Sub Materi</th>
+                            <th style="color: #007BFF;">Teks Kolom</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subtopicTableBody">
+                        <!-- Data akan diisi dengan Javascript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="formContainer" class="hidden">
+                <h3>Form Pertanyaan dan Pilihan Ganda</h3>
+                <form id="questionForm">
+                    <div id="questionsContainer"></div>
+                    <div class="form-actions">
+                        <button type="submit">Simpan</button>
+                    </div>
+                    <p id="successMessage" class="success-message hidden">Pertanyaan berhasil disimpan!</p>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -172,7 +192,7 @@
 
         let selectedSubtopicId = '';
         let selectedSubjectId = '';
-        let selectedTextId = ''; // Declare selectedTextId
+        let selectedTextId = '';
 
         // Fungsi untuk menampilkan tabel mata pelajaran
         async function displaySubjects() {
@@ -186,122 +206,139 @@
                 subjectTableBody.appendChild(row);
             });
 
+            // Menambahkan event listener pada setiap tombol untuk memilih mata pelajaran
             const selectButtons = document.querySelectorAll('.select-subject');
             selectButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    selectedSubjectId = button.getAttribute('data-id'); // Simpan ID mata pelajaran terpilih
+                    selectedSubjectId = button.getAttribute('data-id');
                     displaySubtopics(selectedSubjectId);
                 });
             });
         }
 
         // Fungsi untuk menampilkan sub materi dan teks kolom
-async function displaySubtopics(subjectId) {
-    document.getElementById('subtopicTableContainer').classList.remove('hidden');
-    const subtopicTableBody = document.getElementById('subtopicTableBody');
-    subtopicTableBody.innerHTML = '';
+        async function displaySubtopics(subjectId) {
+            document.getElementById('subtopicTableContainer').classList.remove('hidden');
+            const subtopicTableBody = document.getElementById('subtopicTableBody');
+            subtopicTableBody.innerHTML = '';
 
-    const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
-    const subtopicSnapshot = await getDocs(subtopicRef);
-    
-    for (const doc of subtopicSnapshot.docs) {
-        const subtopicId = doc.id;
-        
-        // Fetch isi_materi documents for the current subtopic
-        const isiMateriRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi', subtopicId, 'isi_materi');
-        const isiMateriSnapshot = await getDocs(isiMateriRef);
+            const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
+            const subtopicSnapshot = await getDocs(subtopicRef);
+            
+            for (const doc of subtopicSnapshot.docs) {
+                const subtopicId = doc.id;
+                
+                // Fetch isi_materi documents untuk subtopik saat ini
+                const isiMateriRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi', subtopicId, 'isi_materi');
+                const isiMateriSnapshot = await getDocs(isiMateriRef);
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${subtopicId}</td>
-            <td>
-                <ul>
-                    ${isiMateriSnapshot.docs.map(isiDoc => `
-                        <li>
-                            <button class="select-text" data-subtopic-id="${subtopicId}" data-text="${isiDoc.id}">${isiDoc.id}</button>
-                        </li>
-                    `).join('')}
-                </ul>
-            </td>
-        `;
-        subtopicTableBody.appendChild(row);
-    }
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${subtopicId}</td>
+                    <td>
+                        <ul>
+                            ${isiMateriSnapshot.docs.map(isiDoc => `
+                                <li>
+                                    <button class="select-text" data-subtopic-id="${subtopicId}" data-text="${isiDoc.id}">${isiDoc.id}</button>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </td>
+                `;
+                subtopicTableBody.appendChild(row);
+            }
 
-    const selectTextButtons = document.querySelectorAll('.select-text');
-    selectTextButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            selectedSubtopicId = button.getAttribute('data-subtopic-id');
-            selectedTextId = button.getAttribute('data-text'); // Use the document ID as selectedTextId
-            showForm();
-        });
-    });
-}
+            // Menambahkan event listener untuk tombol yang memilih teks
+            const selectTextButtons = document.querySelectorAll('.select-text');
+            selectTextButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    selectedSubtopicId = button.getAttribute('data-subtopic-id');
+                    selectedTextId = button.getAttribute('data-text');
+                    showForm();
+                });
+            });
+        }
 
         // Fungsi untuk menampilkan form pertanyaan dan pilihan ganda
-        function showForm() {
+        async function showForm() {
             document.getElementById('formContainer').classList.remove('hidden');
             const questionsContainer = document.getElementById('questionsContainer');
             questionsContainer.innerHTML = '';
 
+            // Mengambil pertanyaan yang sudah ada jika tersedia
+            const docRef = doc(db, `mata_pelajaran/${selectedSubjectId}/sub_materi/${selectedSubtopicId}/isi_materi/${selectedTextId}`);
+            const docSnapshot = await getDoc(docRef);
+
+            const existingQuestions = docSnapshot.exists() ? docSnapshot.data().questions || [] : [];
+
+            // Loop untuk menampilkan 5 pertanyaan, menggunakan data yang ada jika tersedia
             for (let i = 1; i <= 5; i++) {
+                const existingQuestion = existingQuestions[i - 1] || { question: '', options: ['', '', '', ''] };
+
                 questionsContainer.innerHTML += `
                     <label for="question${i}">Pertanyaan ${i}:</label>
-                    <input type="text" id="question${i}" name="question${i}" required>
+                    <input type="text" id="question${i}" name="question${i}" value="${existingQuestion.question}" required>
                     <label style="color: green;">Pilihan Ganda (Jawaban Benar):</label>
-                    <input type="text" id="option${i}1" name="option${i}1" placeholder="Pilihan 1" required style="border: 1px solid green;">
-                    <input type="text" id="option${i}2" name="option${i}2" placeholder="Pilihan 2" required>
-                    <input type="text" id="option${i}3" name="option${i}3" placeholder="Pilihan 3" required>
-                    <input type="text" id="option${i}4" name="option${i}4" placeholder="Pilihan 4" required>
+                    <input type="text" id="option${i}1" name="option${i}1" placeholder="Pilihan 1" value="${existingQuestion.options[0]}" required style="border: 1px solid green;">
+                    <input type="text" id="option${i}2" name="option${i}2" placeholder="Pilihan 2" value="${existingQuestion.options[1]}" required>
+                    <input type="text" id="option${i}3" name="option${i}3" placeholder="Pilihan 3" value="${existingQuestion.options[2]}" required>
+                    <input type="text" id="option${i}4" name="option${i}4" placeholder="Pilihan 4" value="${existingQuestion.options[3]}" required>
                     <br><br>
                 `;
             }
         }
 
-// Event listener untuk form submit
-document.getElementById('questionForm').addEventListener('submit', async (e) => {
-    e.preventDefault(); // Menghindari reload halaman
+        // Event listener untuk form submit
+        document.getElementById('questionForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Menghindari reload halaman
 
-    const questions = [];
-    for (let i = 1; i <= 5; i++) {
-        const questionText = document.getElementById(`question${i}`).value;
-        const options = [
-            document.getElementById(`option${i}1`).value,
-            document.getElementById(`option${i}2`).value,
-            document.getElementById(`option${i}3`).value,
-            document.getElementById(`option${i}4`).value,
-        ];
-        questions.push({ question: questionText, options: options });
-    }
+            const questions = [];
+            for (let i = 1; i <= 5; i++) {
+                const questionText = document.getElementById(`question${i}`).value;
+                const options = [
+                    document.getElementById(`option${i}1`).value,
+                    document.getElementById(`option${i}2`).value,
+                    document.getElementById(`option${i}3`).value,
+                    document.getElementById(`option${i}4`).value,
+                ];
+                questions.push({ question: questionText, options: options });
+            }
 
-    try {
-        // Construct document reference using the selected IDs
-        const docRef = doc(db, `mata_pelajaran/${selectedSubjectId}/sub_materi/${selectedSubtopicId}/isi_materi/${selectedTextId}`);
+            try {
+                // Mengambil referensi dokumen menggunakan ID yang dipilih
+                const docRef = doc(db, `mata_pelajaran/${selectedSubjectId}/sub_materi/${selectedSubtopicId}/isi_materi/${selectedTextId}`);
 
-        // Fetch existing data
-        const docSnapshot = await getDoc(docRef);
-        // Ensure existingData.questions is an array
-        const existingData = docSnapshot.exists() ? docSnapshot.data() : { questions: [] };
-        const existingQuestions = existingData.questions || []; // Initialize as empty array if undefined
+                // Mengambil data yang sudah ada
+                const docSnapshot = await getDoc(docRef);
+                const existingData = docSnapshot.exists() ? docSnapshot.data() : { questions: [] };
+                const existingQuestions = existingData.questions || [];
 
-        // Combine existing questions with new ones
-        const updatedQuestions = existingQuestions.concat(questions);
+                // Memperbarui pertanyaan yang ada atau menambah jika baru
+                questions.forEach((newQuestion, index) => {
+                    if (index < existingQuestions.length) {
+                        // Memperbarui pertanyaan yang sudah ada
+                        existingQuestions[index] = newQuestion;
+                    } else {
+                        // Menambahkan pertanyaan baru
+                        existingQuestions.push(newQuestion);
+                    }
+                });
 
-        // Update the document with the new combined questions
-        await updateDoc(docRef, {
-            questions: updatedQuestions
+                // Memperbarui dokumen dengan array pertanyaan yang dimodifikasi
+                await updateDoc(docRef, {
+                    questions: existingQuestions
+                });
+
+                // Menampilkan pesan sukses
+                document.getElementById('successMessage').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('successMessage').classList.add('hidden');
+                }, 3000);
+
+            } catch (error) {
+                console.error("Error saving question:", error);
+            }
         });
-
-        // Show success message
-        document.getElementById('successMessage').classList.remove('hidden');
-        setTimeout(() => {
-            document.getElementById('successMessage').classList.add('hidden');
-        }, 3000);
-
-    } catch (error) {
-        console.error("Error saving question:", error);
-    }
-});
-
 
         // Menampilkan mata pelajaran saat halaman dimuat
         displaySubjects();

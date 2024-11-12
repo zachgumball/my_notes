@@ -5,18 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Mata Pelajaran</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Centering and box styling */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .main-container {
+            width: 90%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+        }
+
+        /* Navigation bar styling */
+        nav {
+    display: flex;
+    justify-content: center;
+    background-color: #333;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    gap: 10px;
+    position: fixed; /* Fix the navbar at the top */
+    top: 0;          /* Align the navbar to the top */
+    left: 0;         /* Align the navbar to the left */
+    width: 100%;     /* Make the navbar full width */
+    z-index: 1000;   /* Ensure the navbar stays above other content */
+}
+
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #555;
+        }
+
+        /* Container styling */
+        .container {
+            padding: 20px;
+        }
+
+        .visible {
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        form input, form button {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        form button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .detail-text {
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
+    <div class="main-container">
+        <header>
+            <h1>Dashboard MARI BELAJAR</h1>
+        </header>
 
-    <header>
-        <h1>Dashboard MARI BELAJAR</h1>
-    </header>
-
-    <nav>
-        <a href="#" id="addSubjectLink">Tambahkan Mata Pelajaran</a>
-        <a href="#" id="addSubtopicLink">Tambahkan Sub Materi</a>
-        <a href="isimateri.html" id="isiMateriLink">Isi Materi</a>
-    </nav>
+        <nav>
+            <a href="#" id="addSubjectLink">Tambahkan Mata Pelajaran</a>
+            <a href="#" id="addSubtopicLink">Tambahkan Sub Materi</a>
+            <a href="isimateri.html" id="isiMateriLink">Isi Materi</a>
+            <a href="quiz.html" id="quizLink">Quiz</a>
+        </nav>
 
     <div class="container">
         <!-- Halaman Tambah Mata Pelajaran -->
@@ -26,7 +139,9 @@
                 <input type="text" id="nama" placeholder="Nama Mata Pelajaran" required>
                 <input type="text" id="ikon" placeholder="Ikon URL" required>
                 <label for="warna">Warna Kolom:</label>
-                <input type="color" id="warna" value="#FF5733">
+<div id="colorPicker" style="display: flex; align-items: center;">
+    <input type="color" id="warna" value="#FF5733" style="width: 40px; height: 40px; padding: 0; border: none; outline: none;"/>
+</div>
                 <button type="submit">Tambah Mata Pelajaran</button>
             </form>
             <div id="message"></div>
@@ -61,7 +176,8 @@
                 <input type="text" id="subtopicJudul" placeholder="Judul Sub Materi" required>
                 <input type="text" id="subtopicGambar" placeholder="URL Gambar" required>
                 <div id="additionalColumns"></div> <!-- Tempat untuk kolom tambahan -->
-                <button type="submit">Simpan Sub Materi</button>
+                <button type="submit" style="background-color: blue;">Simpan Sub Materi</button>
+                <button type="button" id="addColumnButton">Tambah Kolom</button>
             </form>
             <button type="button" id="addColumnButton">Tambah Kolom</button>
             <div id="subtopicMessage"></div>
@@ -128,6 +244,16 @@
             document.getElementById('addSubjectPage').classList.add('hidden');
             document.getElementById('addSubjectPage').classList.remove('visible');
 
+            // Fungsi untuk kembali ke halaman Tambah Mata Pelajaran
+document.getElementById('addSubjectLink').addEventListener('click', () => {
+    document.getElementById('addSubjectPage').classList.add('visible');
+    document.getElementById('addSubjectPage').classList.remove('hidden');
+    document.getElementById('addSubtopicPage').classList.add('hidden');
+    document.getElementById('addSubtopicPage').classList.remove('visible');
+    document.getElementById('subtopicDetailPage').classList.add('hidden');
+    document.getElementById('subtopicDetailPage').classList.remove('visible');
+});
+
             const subjectTableBody = document.getElementById('subjectTableBody');
             subjectTableBody.innerHTML = '';
 
@@ -150,46 +276,49 @@
 
         // Fungsi untuk menampilkan form sub materi
         async function showSubtopicForm(subjectId) {
-            document.getElementById('addSubtopicPage').classList.add('hidden');
-            document.getElementById('subtopicDetailPage').classList.remove('hidden');
-            document.getElementById('selectedSubjectName').textContent = subjectId;
+    // Display the selected subject's name in the heading
+    document.getElementById('selectedSubjectName').textContent = subjectId;
 
-            // Reset dan kosongkan kolom tambahan
-            document.getElementById('additionalColumns').innerHTML = '';
-            let columnIndex = 1;
+    // Populate the "Judul Sub Materi" input with the selected subject name
+    document.getElementById('subtopicJudul').value = subjectId;
 
-            // Mengambil detail sub materi
-            const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
-            const subtopicSnapshot = await getDocs(subtopicRef);
-            const subtopicTableBody = document.getElementById('subtopicTableBody');
-            subtopicTableBody.innerHTML = ''; // Kosongkan tabel sebelum menambahkan data baru
+    document.getElementById('addSubtopicPage').classList.add('hidden');
+    document.getElementById('subtopicDetailPage').classList.remove('hidden');
 
-            if (!subtopicSnapshot.empty) {
-                subtopicSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const subtopicId = doc.id;
+    // Reset and clear additional columns
+    document.getElementById('additionalColumns').innerHTML = '';
 
-                    // Render judul dan gambar sub materi
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${subtopicId}</td>
-                        <td><img src="${data.gambar}" alt="${subtopicId}" style="width: 50px; height: auto;"></td>
-                        <td>
-                            <ul>
-                                ${Object.keys(data).filter(key => key.startsWith('teks_kolom')).map((key, index) => `
-                                    <li>${data[key]} <br>
-                                    <img src="${data[`gambar_kolom${index + 1}`] || ''}" alt="Gambar Kolom ${index + 1}" style="width: 50px; height: auto;"></li>
-                                `).join('')}
-                            </ul>
-                        </td>
-                        <td>
-                            <button class="edit-subtopic" data-id="${subtopicId}">Edit</button>
-                            <button class="delete-subtopic" data-id="${subtopicId}">Hapus</button>
-                        </td>
-                    `;
-                    subtopicTableBody.appendChild(row);
-                });
-            }
+    // Retrieve subtopic details as before
+    const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
+    const subtopicSnapshot = await getDocs(subtopicRef);
+    const subtopicTableBody = document.getElementById('subtopicTableBody');
+    subtopicTableBody.innerHTML = '';
+
+    if (!subtopicSnapshot.empty) {
+        subtopicSnapshot.forEach(doc => {
+            const data = doc.data();
+            const subtopicId = doc.id;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${subtopicId}</td>
+                <td><img src="${data.gambar}" alt="${subtopicId}" style="width: 50px; height: auto;"></td>
+                <td>
+                    <ul>
+                        ${Object.keys(data).filter(key => key.startsWith('teks_kolom')).map((key, index) => `
+                            <li>${data[key]} <br>
+                            <img src="${data[`gambar_kolom${index + 1}`] || ''}" alt="Gambar Kolom ${index + 1}" style="width: 50px; height: auto;"></li>
+                        `).join('')}
+                    </ul>
+                </td>
+                <td>
+                    <button class="edit-subtopic" data-id="${subtopicId}">Edit</button>
+                    <button class="delete-subtopic" data-id="${subtopicId}">Hapus</button>
+                </td>
+            `;
+            subtopicTableBody.appendChild(row);
+        });
+    }
 
             // Penanganan tombol edit dan hapus
             const editButtons = document.querySelectorAll('.edit-subtopic');

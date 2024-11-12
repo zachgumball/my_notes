@@ -5,31 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Isi Materi</title>
     <link rel="stylesheet" href="styles.css">
+
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
     <style>
         body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
+            padding: 20px;
+            height: 100vh;
+        }
+        .success-message {
+    color: green;
+    margin-top: 10px;
+    text-align: center;
+    display: none; /* Start hidden */
+    padding: 10px;
+    background-color: #d4edda;
+    border-radius: 5px;
+    border: 1px solid #c3e6cb;
+}
+
+
+        .main-container {
+            width: 90%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
             padding: 20px;
         }
 
         header {
             text-align: center;
-            margin-bottom: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
         }
 
         nav {
-            margin-bottom: 20px;
-            text-align: center;
+    display: flex;
+    justify-content: center;
+    background-color: #333;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    gap: 10px;
+    position: fixed; /* Fix the navbar at the top */
+    top: 0;          /* Align the navbar to the top */
+    left: 0;         /* Align the navbar to the left */
+    width: 100%;     /* Make the navbar full width */
+    z-index: 1000;   /* Ensure the navbar stays above other content */
+}
+
+body {
+    padding-top: 50px; /* Add padding to the body to prevent content from being hidden behind the navbar */
+}
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        nav a:hover {
+            background-color: #555;
         }
 
         h1, h2, h3 {
@@ -40,6 +89,9 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         th, td {
@@ -50,6 +102,7 @@
 
         th {
             background-color: #edf1eb;
+            color: #007BFF;
         }
 
         button {
@@ -72,7 +125,7 @@
         #formContainer {
             background-color: #f9f9f9;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 8px;
             padding: 20px;
             margin-top: 20px;
         }
@@ -83,15 +136,22 @@
             margin-bottom: 5px;
         }
 
-        textarea {
+        #contentInput {
+            height: 500px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+
+        textarea, input[type="url"] {
             width: 100%;
-            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             resize: vertical;
         }
 
-        textarea:focus {
+        textarea:focus, input[type="url"]:focus {
             outline: none;
             border-color: #007BFF;
         }
@@ -101,94 +161,82 @@
             margin-top: 15px;
         }
 
-        .context-menu {
-            display: none; /* Tersembunyi secara default */
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .context-menu button {
-            background: none;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            text-align: left;
-            width: 100%;
-        }
-
-        .context-menu button:hover {
-            background-color: #f0f0f0;
+        .success-message {
+            color: green;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
         }
     </style>
 </head>
 <body>
+    <div class="main-container">
+        <header>
+            <h1>Isi Materi</h1>
+        </header>
 
-    <header>
-        <h1>Isi Materi</h1>
-    </header>
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="quiz.html">Quiz</a>
+        </nav>
 
-    <nav>
-        <a href="index.html">Dashboard</a>
-        <a href="quiz.html">Quiz</a>
-    </nav>
-
-    <div class="container">
-        <h2>Daftar Mata Pelajaran</h2>
-        <table id="subjectTable">
-            <thead>
-                <tr>
-                    <th style="color: #007BFF;">Nama Mata Pelajaran</th>
-                </tr>
-            </thead>
-            <tbody id="subjectTableBody">
-                <!-- Data akan diisi dengan Javascript -->
-            </tbody>
-        </table>
-
-        <div id="subtopicTableContainer" class="hidden">
-            <h3>Detail Sub Materi</h3>
-            <table id="subtopicTable">
+        <div class="container">
+            <h2>Daftar Mata Pelajaran</h2>
+            <table id="subjectTable">
                 <thead>
                     <tr>
-                        <th style="color: #007BFF;">Judul Sub Materi</th>
-                        <th style="color: #007BFF;">Teks Kolom</th>
+                        <th>Nama Mata Pelajaran</th>
                     </tr>
                 </thead>
-                <tbody id="subtopicTableBody">
-                    <!-- Data akan diisi dengan Javascript -->
+                <tbody id="subjectTableBody">
+                    <!-- Data will be populated with JavaScript -->
                 </tbody>
             </table>
-        </div>
 
-        <div id="formContainer" class="hidden">
-            <h3>Tambah Isi Materi</h3>
-            <form id="contentForm">
-                <label for="contentInput">Isi Materi:</label>
-                <textarea id="contentInput" rows="10" required></textarea>
-                <div class="form-actions">
-                    <button type="submit">Simpan</button>
-                </div>
-                <p id="successMessage" class="hidden" style="color: green; margin-top: 10px;">Isi materi berhasil disimpan!</p> <!-- Notifikasi berhasil -->
-            </form>
+            <div id="subtopicTableContainer" class="hidden">
+                <h3>Detail Sub Materi</h3>
+                <table id="subtopicTable">
+                    <thead>
+                        <tr>
+                            <th>Judul Sub Materi</th>
+                            <th>Teks Kolom</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subtopicTableBody">
+                        <!-- Data will be populated with JavaScript -->
+                    </tbody>
+                </table>
+            </div>
 
-            <div id="contextMenu" class="context-menu hidden">
-                <button id="boldBtn">Bold</button>
-                <button id="italicBtn">Italic</button>
-                <button id="clearFormattingBtn">Clear Formatting</button>
+            <div id="formContainer" class="hidden">
+                <h3>Tambah Isi Materi</h3>
+                <form id="contentForm">
+                    <label for="contentInput">Isi Materi:</label>
+                    <div id="contentInput"></div>
+
+                    <label for="hintInput">Teks Hint:</label>
+                    <textarea id="hintInput" rows="3" placeholder="Misalnya 'Ayo lihat 3d object Lampu!'" required></textarea>
+
+                    <label for="url3DInput">URL 3D Object:</label>
+                    <input type="url" id="url3DInput" placeholder="https://example.com/3dobject" required>
+
+                    <div class="form-actions">
+                        <button type="submit">Simpan</button>
+                    </div>
+
+                    <p id="successMessage" class="success-message">Isi materi berhasil disimpan!</p>
+                </form>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        // Konfigurasi Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    
         const firebaseConfig = {
             apiKey: "AIzaSyDTdva2L7ofrImgJ3OmFwskWEZqaZbuRoE",
             authDomain: "mynotes-zynext.firebaseapp.com",
@@ -197,161 +245,158 @@
             messagingSenderId: "802670210215",
             appId: "1:802670210215:web:cedfff9cba00c3d798bf82"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
+    
         let selectedSubtopicId = '';
         let selectedSubjectId = '';
-        let selectedTextId = ''; // Menyimpan ID teks kolom yang dipilih
-
-        // Fungsi untuk menampilkan tabel mata pelajaran
+        let selectedTextId = '';
+    
+        const quill = new Quill('#contentInput', {
+            theme: 'snow',
+            placeholder: 'Tulis isi materi di sini...',
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['link', 'blockquote', 'code-block', 'image'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    [{ align: [] }],
+                    ['clean']
+                ]
+            }
+        });
+    
         async function displaySubjects() {
             const subjectTableBody = document.getElementById('subjectTableBody');
             subjectTableBody.innerHTML = '';
-
+    
             const querySnapshot = await getDocs(collection(db, 'mata_pelajaran'));
             querySnapshot.forEach((doc) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td><button class="select-subject" data-id="${doc.id}">${doc.id}</button></td>`;
                 subjectTableBody.appendChild(row);
             });
-
+    
             const selectButtons = document.querySelectorAll('.select-subject');
             selectButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    selectedSubjectId = button.getAttribute('data-id'); // Simpan ID mata pelajaran terpilih
+                    selectedSubjectId = button.getAttribute('data-id');
                     displaySubtopics(selectedSubjectId);
                 });
             });
         }
 
-        // Fungsi untuk menampilkan sub materi dan teks kolom
+        let teksKolom = '';
+    
         async function displaySubtopics(subjectId) {
-            document.getElementById('subtopicTableContainer').classList.remove('hidden');
-            const subtopicTableBody = document.getElementById('subtopicTableBody');
-            subtopicTableBody.innerHTML = '';
+    document.getElementById('subtopicTableContainer').classList.remove('hidden');
+    const subtopicTableBody = document.getElementById('subtopicTableBody');
+    subtopicTableBody.innerHTML = '';
 
-            const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
-            const subtopicSnapshot = await getDocs(subtopicRef);
-            
-            subtopicSnapshot.forEach(doc => {
-                const data = doc.data();
-                const subtopicId = doc.id;
+    const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
+    const subtopicSnapshot = await getDocs(subtopicRef);
 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${subtopicId}</td>
-                    <td>
-                        <ul>
-                            ${Object.keys(data).filter(key => key.startsWith('teks_kolom')).map(key => `
-                                <li>
-                                    <button class="select-text" data-subtopic-id="${subtopicId}" data-key="${key}" data-text="${data[key]}">${data[key]}</button>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </td>
-                `;
-                subtopicTableBody.appendChild(row);
-            });
+    subtopicSnapshot.forEach(doc => {
+        const data = doc.data();
+        const subtopicId = doc.id;
 
-            const selectTextButtons = document.querySelectorAll('.select-text');
-            selectTextButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    selectedSubtopicId = button.getAttribute('data-subtopic-id');
-                    selectedTextId = button.getAttribute('data-text'); // Menyimpan teks kolom yang dipilih
-                    showForm();
-                });
-            });
-        }
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${subtopicId}</td>
+            <td>
+                <ul>
+                    ${Object.keys(data).filter(key => key.startsWith('teks_kolom')).map(key => 
+                        `<li>
+                            <button class="select-text" data-subtopic-id="${subtopicId}" data-teks-kolom="${data[key]}" data-text-id="${key}">${data[key]}</button>
+                        </li>`).join('')}
+                </ul>
+            </td>`;
+        subtopicTableBody.appendChild(row);
+    });
 
-        // Fungsi untuk menampilkan form
-        async function showForm() {
+    document.querySelectorAll('.select-text').forEach(button => {
+        button.addEventListener('click', () => {
+            selectedSubtopicId = button.getAttribute('data-subtopic-id');
+            teksKolom = button.getAttribute('data-teks-kolom');  // Get teks_kolom value
+            selectedTextId = button.getAttribute('data-text-id');
             document.getElementById('formContainer').classList.remove('hidden');
+            loadExistingContent(teksKolom);  // Pass teks_kolom value
+        });
+    });
+}
 
-            // Ambil data isiMateri dari Firestore jika sudah ada
-            const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', selectedTextId);
-            
-            try {
-                const isiMateriDoc = await getDoc(isiMateriRef);
-                if (isiMateriDoc.exists()) {
-                    document.getElementById('contentInput').value = isiMateriDoc.data().isiMateri;
-                } else {
-                    document.getElementById('contentInput').value = ''; // Reset jika tidak ada
-                }
-            } catch (error) {
-                console.error('Error fetching isiMateri:', error);
-            }
+    
+async function loadExistingContent(teksKolom) {
+    const docRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        console.log("Isi Materi Data: ", data);
+        quill.root.innerHTML = data.isiMateri || '';  // Set Quill editor content
+        document.getElementById('hintInput').value = data.teksHint || '';  // Set hint
+        document.getElementById('url3DInput').value = data.url3DObject || '';  // Set URL
+    } else {
+        console.log("No data found for this document.");
+        quill.root.innerHTML = '';
+        document.getElementById('hintInput').value = '';
+        document.getElementById('url3DInput').value = '';
+    }
+}
+
+
+document.getElementById('contentForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const contentValue = quill.root.innerHTML;  // Get content from the Quill editor
+    const hintValue = document.getElementById('hintInput').value;  // Get hint text
+    const url3DValue = document.getElementById('url3DInput').value;  // Get URL 3D Object
+
+    // Determine the document reference with teksKolom as the document ID
+    const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
+
+    try {
+        // Check if the document with teksKolom exists
+        const docSnap = await getDoc(isiMateriRef);
+        
+        if (docSnap.exists()) {
+            // If document exists, update it
+            await updateDoc(isiMateriRef, {
+                isiMateri: contentValue,
+                teksHint: hintValue,
+                url3DObject: url3DValue
+            });
+            console.log("Document successfully updated!");
+        } else {
+            // If document does not exist, create a new one
+            await setDoc(isiMateriRef, {
+                isiMateri: contentValue,
+                teksHint: hintValue,
+                url3DObject: url3DValue
+            });
+            console.log("Document successfully created!");
         }
 
-        // Event listener untuk form submit
-        document.getElementById('contentForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const contentValue = document.getElementById('contentInput').value;
+        // Show success message
+        const successMessage = document.getElementById('successMessage');
+        successMessage.classList.remove('hidden');
+        successMessage.style.display = 'block'; // Ensure visibility
+        setTimeout(() => {
+            successMessage.style.display = 'none'; // Hide after 3 seconds
+        }, 3000);
 
-            // Simpan isiMateri ke Firestore
-            const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', selectedTextId);
-            await setDoc(isiMateriRef, { isiMateri: contentValue });
+        // Optionally clear the form after success
+        // quill.root.innerHTML = ''; // Uncomment to clear Quill editor
+        // document.getElementById('hintInput').value = ''; // Uncomment to clear hint
+        // document.getElementById('url3DInput').value = ''; // Uncomment to clear URL
 
-            // Tampilkan notifikasi berhasil
-            const successMessage = document.getElementById('successMessage');
-            successMessage.classList.remove('hidden');
-            setTimeout(() => {
-                successMessage.classList.add('hidden');
-            }, 3000); // Sembunyikan setelah 3 detik
+    } catch (error) {
+        console.error("Error saving document: ", error);
+    }
+});
 
-            // Reset textarea
-            document.getElementById('contentInput').value = '';
-        });
-
-        // Konfigurasi menu konteks
-        const contextMenu = document.getElementById('contextMenu');
-        const contentInput = document.getElementById('contentInput');
-
-        contentInput.addEventListener('contextmenu', (event) => {
-            event.preventDefault(); // Mencegah menu konteks default
-            contextMenu.style.display = 'block';
-            contextMenu.style.left = `${event.pageX}px`; // Posisi menu konteks
-            contextMenu.style.top = `${event.pageY}px`;
-        });
-
-        // Menyembunyikan menu konteks ketika klik di luar
-        window.addEventListener('click', () => {
-            contextMenu.style.display = 'none';
-        });
-
-        // Menambahkan event listener untuk tombol di menu konteks
-        document.getElementById('boldBtn').addEventListener('click', () => {
-            applyFormat('bold');
-        });
-
-        document.getElementById('italicBtn').addEventListener('click', () => {
-            applyFormat('italic');
-        });
-
-        document.getElementById('clearFormattingBtn').addEventListener('click', () => {
-            contentInput.value = contentInput.value; // Menghapus format
-        });
-
-        // Fungsi untuk menerapkan format teks
-        function applyFormat(format) {
-            const start = contentInput.selectionStart;
-            const end = contentInput.selectionEnd;
-            let selectedText = contentInput.value.substring(start, end);
-            
-            if (format === 'bold') {
-                selectedText = `**${selectedText}**`; // Menggunakan tanda ** untuk bold
-            } else if (format === 'italic') {
-                selectedText = `*${selectedText}*`; // Menggunakan tanda * untuk italic
-            }
-
-            contentInput.value = contentInput.value.substring(0, start) + selectedText + contentInput.value.substring(end);
-            contentInput.focus(); // Memfokuskan kembali ke textarea
-            contextMenu.style.display = 'none'; // Menyembunyikan menu konteks
-        }
-
-        // Memanggil fungsi untuk menampilkan mata pelajaran
         displaySubjects();
     </script>
+    
 </body>
 </html>

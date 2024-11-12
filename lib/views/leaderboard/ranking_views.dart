@@ -21,11 +21,11 @@ class LeaderboardViews extends StatelessWidget {
             return const Center(child: Text('Tidak ada data leaderboard.'));
           }
 
-          // Filter data to include only users with complete scores
+          // Filter data untuk mengambil pengguna dengan skor kuis
           final leaderboardData = snapshot.data!.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            return data.containsKey('skor_cahaya_bunyi') &&
-                data.containsKey('skor_harmoni_ekosistem');
+            // Memeriksa apakah dokumen mengandung field yang dimulai dengan 'skor_quiz'
+            return data.keys.any((key) => key.startsWith('skor_quiz'));
           }).toList();
 
           if (leaderboardData.isEmpty) {
@@ -33,17 +33,33 @@ class LeaderboardViews extends StatelessWidget {
                 child: Text('Tidak ada data leaderboard dengan skor lengkap.'));
           }
 
+          // Menghitung total skor dan menyiapkan daftar nama dan skor
+          List<Map<String, dynamic>> scoresList = leaderboardData.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+
+            final name = data['name'] ?? 'Unknown'; // Mengambil nama pengguna
+            int totalScore = 0;
+
+            data.forEach((key, value) {
+              if (key.startsWith('skor_quiz') && value is int) {
+                totalScore += value; // Menjumlahkan semua skor kuis
+              }
+            });
+
+            return {'name': name, 'totalScore': totalScore};
+          }).toList();
+
+          // Mengurutkan scoresList berdasarkan totalScore secara menurun
+          scoresList.sort((a, b) => b['totalScore'].compareTo(a['totalScore']));
+
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
-            itemCount: leaderboardData.length,
+            itemCount: scoresList.length,
             itemBuilder: (context, index) {
-              final data =
-                  leaderboardData[index].data() as Map<String, dynamic>;
+              final scoreData = scoresList[index];
 
-              final name = data['name'] ?? 'Unknown';
-              final skorCahayaBunyi = data['skor_cahaya_bunyi'] ?? 0;
-              final skorEkosistem = data['skor_harmoni_ekosistem'] ?? 0;
-              final totalScore = skorCahayaBunyi + skorEkosistem;
+              final name = scoreData['name'];
+              final totalScore = scoreData['totalScore'];
 
               // Warna khusus untuk ranking 1-3
               Color borderColor;
@@ -58,7 +74,6 @@ class LeaderboardViews extends StatelessWidget {
                     .transparent; // Tidak ada border untuk ranking lainnya
               }
 
-              // Border mencakup nama dan skor, hanya untuk peringkat 1-3
               return Container(
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
                 decoration: BoxDecoration(
@@ -73,7 +88,7 @@ class LeaderboardViews extends StatelessWidget {
                   leading: CircleAvatar(
                     backgroundColor: borderColor,
                     child: Text(
-                      '${index + 1}',
+                      '${index + 1}', // Menampilkan ranking
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -88,7 +103,7 @@ class LeaderboardViews extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    '$totalScore',
+                    '$totalScore', // Menampilkan total skor
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),

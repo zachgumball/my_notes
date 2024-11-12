@@ -59,11 +59,9 @@ class HomePage extends StatelessWidget {
           case ConnectionState.done:
             final user = FirebaseAuth.instance.currentUser;
             if (user != null) {
-              if (user.emailVerified) {
-                return const NotesView();
-              } else {
-                return const VerifyEmailView();
-              }
+              return user.emailVerified
+                  ? const NotesView()
+                  : const VerifyEmailView();
             } else {
               return const LoginView();
             }
@@ -120,7 +118,6 @@ class _NotesViewState extends State<NotesView> {
     }
   }
 
-  // Fungsi untuk menambahkan mata pelajaran baru ke Firestore
   Future<void> addMataPelajaran(String nama, String ikon, String warna) async {
     CollectionReference pelajaran =
         FirebaseFirestore.instance.collection('mata_pelajaran');
@@ -128,7 +125,7 @@ class _NotesViewState extends State<NotesView> {
     try {
       await pelajaran.add({
         'nama': nama,
-        'ikon': ikon,
+        'ikon': ikon, // This should be the image URL
         'warna': warna,
       });
       print('Mata Pelajaran berhasil ditambahkan!');
@@ -221,12 +218,12 @@ class _NotesViewState extends State<NotesView> {
                         Text(
                           'Hallo, $_name! 😊',
                           style: const TextStyle(
-                            fontSize: 24,
+                            fontSize: 30,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 15),
                         Text(
                           _getGreeting(),
                           style: const TextStyle(
@@ -238,7 +235,6 @@ class _NotesViewState extends State<NotesView> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
                   Expanded(
                     child: StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
@@ -275,7 +271,8 @@ class _NotesViewState extends State<NotesView> {
                           itemBuilder: (context, index) {
                             final pelajaran = pelajaranDocs[index];
                             final nama = pelajaran['nama'];
-                            final ikon = pelajaran['ikon'];
+                            final ikonUrl =
+                                pelajaran['ikon']; // URL of the icon
                             final warna = pelajaran['warna'];
 
                             return GestureDetector(
@@ -284,7 +281,7 @@ class _NotesViewState extends State<NotesView> {
                                   subMateriRoute,
                                   arguments: {
                                     'nama': nama,
-                                    'ikon': ikon,
+                                    'ikon': ikonUrl,
                                     'warna': warna,
                                     'subjectName': nama
                                   },
@@ -294,29 +291,31 @@ class _NotesViewState extends State<NotesView> {
                                 decoration: BoxDecoration(
                                   color: Color(
                                       int.parse('0xFF${warna.substring(1)}')),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Center(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(getIconFromName(ikon),
-                                          size: 50, color: Colors.white),
+                                      Image.network(
+                                        ikonUrl,
+                                        width: 50,
+                                        height: 50,
+                                      ),
                                       const SizedBox(height: 10),
                                       AutoSizeText(
                                         nama,
                                         style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
+                                          color: Color.fromARGB(
+                                              255, 253, 252, 252),
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                         ),
-                                        maxLines: 1, // Hanya 1 baris untuk teks
-                                        minFontSize: 14, // Ukuran font minimal
-                                        maxFontSize: 18, // Ukuran font maksimal
-                                        overflow: TextOverflow
-                                            .ellipsis, // Menggunakan ellipsis untuk teks panjang
-                                        textAlign:
-                                            TextAlign.center, // Rata tengah
+                                        maxLines: 2,
+                                        minFontSize: 14,
+                                        maxFontSize: 18,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
                                       ),
                                     ],
                                   ),
@@ -352,25 +351,11 @@ class _NotesViewState extends State<NotesView> {
             _selectedIndex = index;
           });
           if (index == 1) {
-            // Navigasi ke halaman leaderboard
             Navigator.of(context).pushNamed(leaderboardRoute);
           }
         },
       ),
     );
-  }
-
-  IconData getIconFromName(String iconName) {
-    switch (iconName) {
-      case 'tree':
-        return CupertinoIcons.tree;
-      case 'paw':
-        return CupertinoIcons.paw;
-      case 'book':
-        return CupertinoIcons.book;
-      default:
-        return CupertinoIcons.question_circle;
-    }
   }
 
   Future<bool> showLogOutDialog(BuildContext context) {

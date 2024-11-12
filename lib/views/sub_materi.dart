@@ -2,45 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mynotes/views/materi/materi_pelajaran.dart';
 
-class SubMateri extends StatefulWidget {
-  final String subjectName; // Add this line
+class SubMateri extends StatelessWidget {
+  final String subjectName;
 
-  const SubMateri({super.key, required this.subjectName}); // Modify constructor
+  const SubMateri({super.key, required this.subjectName});
 
-  @override
-  State<SubMateri> createState() => _SubMateriState();
-}
+  Future<Map<String, dynamic>> _fetchDataFromFirestore() async {
+    FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    Map<String, dynamic> result = {
+      'title': subjectName,
+      'imageUrl': '',
+      'items': <Map<String, String>>[]
+    };
 
-class _SubMateriState extends State<SubMateri> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  String _title = '';
-  String _imageUrl = '';
-  List<Map<String, String>> _items = []; // Menyimpan data gambar dan teks_kolom
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _fetchDataFromFirestore(); // Move fetch data call here
-  }
-
-  Future<void> _fetchDataFromFirestore() async {
     try {
-      // Use the subject name to get the corresponding document
+      // Ambil sub-materi sesuai dengan subject name
       QuerySnapshot subMateriSnapshot = await _firestore
           .collection('mata_pelajaran')
-          .doc(widget.subjectName)
+          .doc(subjectName)
           .collection('sub_materi')
           .get();
 
       if (subMateriSnapshot.docs.isNotEmpty) {
         var document = subMateriSnapshot.docs.first;
 
-        setState(() {
-          _title = widget.subjectName;
-          _imageUrl = document['gambar'] ?? '';
-        });
+        result['imageUrl'] = document['gambar'] ?? '';
 
-        // Continue fetching teks_kolom and gambar_kolom
+        // Ambil data teks_kolom dan gambar_kolom secara berurutan
         int index = 1;
         while (true) {
           String teksKolom = 'teks_kolom$index';
@@ -53,7 +41,8 @@ class _SubMateriState extends State<SubMateri> {
             break;
           }
 
-          _items.add({'teks_kolom': teks_kolom, 'gambar_kolom': gambar_kolom});
+          result['items']
+              .add({'teks_kolom': teks_kolom, 'gambar_kolom': gambar_kolom});
 
           index++;
         }
@@ -61,108 +50,122 @@ class _SubMateriState extends State<SubMateri> {
     } catch (e) {
       print('Error fetching data: $e');
     }
+
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_title), // Title dinamis dari Firestore
+        title: Text(subjectName),
         backgroundColor: const Color.fromARGB(0, 5, 233, 237),
         elevation: 0,
       ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/background/background1.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: Container(
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
-          Center(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0, bottom: 30.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: SizedBox(
-                      width: 380,
-                      height: 200,
-                      child: _imageUrl.isNotEmpty
-                          ? Image.network(
-                              _imageUrl, // Gambar dinamis dari Firestore
-                              fit: BoxFit.cover,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
-                                  Icons.broken_image,
-                                  size: 100,
-                                );
-                              },
-                            )
-                          : const Center(
-                              child:
-                                  CircularProgressIndicator()), // Menampilkan loading jika gambar belum diambil
-                    ),
-                  ),
-                ),
-                // Menampilkan item dari _items
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
-                          // Tambahkan navigasi ke materiPelajaranRoute saat item di-tap
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                // Assuming isiMateriId can be obtained from the document or based on teks_kolom
-                                String isiMateriId =
-                                    _items[index]['teks_kolom'] ?? '';
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _fetchDataFromFirestore(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                                return MateriPelajaran(
-                                  teksKolom: _items[index]['teks_kolom'] ?? '',
-                                  gambarKolom:
-                                      _items[index]['gambar_kolom'] ?? '',
-                                  materiDocumentId: widget
-                                      .subjectName, // Pass the subject name as materiDocumentId
-                                  subMateriDocumentId: widget
-                                      .subjectName, // Pass the specific subMateriDocumentId
-                                  isiMateriId:
-                                      isiMateriId, // Pass the isiMateriId based on the teks_kolom
-                                );
-                              },
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final data = snapshot.data;
+
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/background/background1.jpg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned.fill(
+                child: Container(
+                  color: Colors.white.withOpacity(0.7),
+                ),
+              ),
+              Center(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0, bottom: 30.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: SizedBox(
+                          width: 380,
+                          height: 200,
+                          child: data!['imageUrl'].isNotEmpty
+                              ? Image.network(
+                                  data['imageUrl'],
+                                  fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(
+                                      Icons.broken_image,
+                                      size: 100,
+                                    );
+                                  },
+                                )
+                              : const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: data['items'].length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    String isiMateriId = data['items'][index]
+                                            ['teks_kolom'] ??
+                                        '';
+
+                                    return MateriPelajaran(
+                                      teksKolom: data['items'][index]
+                                              ['teks_kolom'] ??
+                                          '',
+                                      gambarKolom: data['items'][index]
+                                              ['gambar_kolom'] ??
+                                          '',
+                                      materiDocumentId: subjectName,
+                                      subMateriDocumentId: subjectName,
+                                      isiMateriId: isiMateriId,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                            child: _buildItem(
+                              image: data['items'][index]['gambar_kolom'] ?? '',
+                              title: data['items'][index]['teks_kolom'] ?? '',
                             ),
                           );
                         },
-                        child: _buildItem(
-                          image: _items[index]['gambar_kolom'] ?? '',
-                          title: _items[index]['teks_kolom'] ?? '',
-                        ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -202,7 +205,7 @@ class _SubMateriState extends State<SubMateri> {
                   bottomLeft: Radius.circular(20),
                 ),
                 child: Opacity(
-                  opacity: 0.7,
+                  opacity: 0.8,
                   child: Image.network(
                     image,
                     fit: BoxFit.cover,
