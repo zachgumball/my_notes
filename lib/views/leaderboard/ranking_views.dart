@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LeaderboardViews extends StatelessWidget {
   const LeaderboardViews({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ranking'),
@@ -24,7 +26,6 @@ class LeaderboardViews extends StatelessWidget {
           // Filter data untuk mengambil pengguna dengan skor kuis
           final leaderboardData = snapshot.data!.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            // Memeriksa apakah dokumen mengandung field yang dimulai dengan 'skor_quiz'
             return data.keys.any((key) => key.startsWith('skor_quiz'));
           }).toList();
 
@@ -46,18 +47,21 @@ class LeaderboardViews extends StatelessWidget {
               }
             });
 
-            return {'name': name, 'totalScore': totalScore};
+            return {'name': name, 'totalScore': totalScore, 'uid': doc.id};
           }).toList();
 
           // Mengurutkan scoresList berdasarkan totalScore secara menurun
           scoresList.sort((a, b) => b['totalScore'].compareTo(a['totalScore']));
+
+          // Find the current user's position in the leaderboard
+          final currentUserRank =
+              scoresList.indexWhere((data) => data['uid'] == currentUser?.uid);
 
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
             itemCount: scoresList.length,
             itemBuilder: (context, index) {
               final scoreData = scoresList[index];
-
               final name = scoreData['name'];
               final totalScore = scoreData['totalScore'];
 
@@ -70,23 +74,27 @@ class LeaderboardViews extends StatelessWidget {
               } else if (index == 2) {
                 borderColor = Colors.blue; // Peringkat 3
               } else {
-                borderColor = Colors
-                    .transparent; // Tidak ada border untuk ranking lainnya
+                borderColor = Colors.transparent;
               }
 
-              return Container(
+              // Highlight current user with an animation
+              bool isCurrentUser = currentUserRank == index;
+
+              return AnimatedContainer(
+                duration:
+                    const Duration(milliseconds: 500), // Duration for animation
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: borderColor,
-                    width: index < 3 ? 3 : 0, // Lebar border hanya untuk top 3
+                    color: isCurrentUser ? Colors.green : borderColor,
+                    width: isCurrentUser ? 3 : (index < 3 ? 3 : 0),
                   ),
-                  borderRadius: BorderRadius.circular(
-                      12), // Border radius agar lebih halus
+                  borderRadius: BorderRadius.circular(12),
+                  color: isCurrentUser ? Colors.green.shade50 : null,
                 ),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: borderColor,
+                    backgroundColor: isCurrentUser ? Colors.green : borderColor,
                     child: Text(
                       '${index + 1}', // Menampilkan ranking
                       style: const TextStyle(

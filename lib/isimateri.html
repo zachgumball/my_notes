@@ -346,54 +346,65 @@ async function loadExistingContent(teksKolom) {
 }
 
 
-document.getElementById('contentForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const contentValue = quill.root.innerHTML;  // Get content from the Quill editor
-    const hintValue = document.getElementById('hintInput').value;  // Get hint text
-    const url3DValue = document.getElementById('url3DInput').value;  // Get URL 3D Object
-
-    // Determine the document reference with teksKolom as the document ID
-    const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
-
-    try {
-        // Check if the document with teksKolom exists
-        const docSnap = await getDoc(isiMateriRef);
-        
-        if (docSnap.exists()) {
-            // If document exists, update it
-            await updateDoc(isiMateriRef, {
-                isiMateri: contentValue,
-                teksHint: hintValue,
-                url3DObject: url3DValue
-            });
-            console.log("Document successfully updated!");
-        } else {
-            // If document does not exist, create a new one
-            await setDoc(isiMateriRef, {
-                isiMateri: contentValue,
-                teksHint: hintValue,
-                url3DObject: url3DValue
-            });
-            console.log("Document successfully created!");
-        }
-
-        // Show success message
-        const successMessage = document.getElementById('successMessage');
-        successMessage.classList.remove('hidden');
-        successMessage.style.display = 'block'; // Ensure visibility
-        setTimeout(() => {
-            successMessage.style.display = 'none'; // Hide after 3 seconds
-        }, 3000);
-
-        // Optionally clear the form after success
-        // quill.root.innerHTML = ''; // Uncomment to clear Quill editor
-        // document.getElementById('hintInput').value = ''; // Uncomment to clear hint
-        // document.getElementById('url3DInput').value = ''; // Uncomment to clear URL
-
-    } catch (error) {
-        console.error("Error saving document: ", error);
+        // Function to convert GitHub URLs to jsDelivr URLs
+        function convertToJsDelivr(url) {
+    const githubPattern = /^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/(.+)$/;
+    const match = url.match(githubPattern);
+    
+    if (match) {
+        const [_, user, repo, path] = match;
+        // Remove '/main/' from the path if it exists
+        const cleanedPath = path.replace(/^main\//, '');
+        return `https://cdn.jsdelivr.net/gh/${user}/${repo}/${cleanedPath}`;
     }
-});
+    
+    return url; // Return the original URL if it's not a GitHub URL
+}
+
+        
+        document.getElementById('contentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const contentValue = quill.root.innerHTML;  // Get content from the Quill editor
+            const hintValue = document.getElementById('hintInput').value;  // Get hint text
+            let url3DValue = document.getElementById('url3DInput').value;  // Get URL 3D Object
+
+            // Convert the URL if it's a GitHub link
+            url3DValue = convertToJsDelivr(url3DValue);
+
+            // Determine the document reference with teksKolom as the document ID
+            const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
+
+            try {
+                const docSnap = await getDoc(isiMateriRef);
+                
+                if (docSnap.exists()) {
+                    await updateDoc(isiMateriRef, {
+                        isiMateri: contentValue,
+                        teksHint: hintValue,
+                        url3DObject: url3DValue
+                    });
+                    console.log("Document successfully updated!");
+                } else {
+                    await setDoc(isiMateriRef, {
+                        isiMateri: contentValue,
+                        teksHint: hintValue,
+                        url3DObject: url3DValue
+                    });
+                    console.log("Document successfully created!");
+                }
+
+                const successMessage = document.getElementById('successMessage');
+                successMessage.classList.remove('hidden');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+
+            } catch (error) {
+                console.error("Error saving document: ", error);
+            }
+        });
 
         displaySubjects();
     </script>

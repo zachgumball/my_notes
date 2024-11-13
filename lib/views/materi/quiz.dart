@@ -9,11 +9,11 @@ class QuizPage extends StatefulWidget {
   final String isiMateriId;
 
   const QuizPage({
-    Key? key,
+    super.key,
     required this.materiDocumentId,
     required this.subMateriDocumentId,
     required this.isiMateriId,
-  }) : super(key: key);
+  });
 
   @override
   _QuizPageState createState() => _QuizPageState();
@@ -252,11 +252,20 @@ class _QuizPageState extends State<QuizPage> {
                                 crossAxisCount: 2,
                                 mainAxisSpacing: 8.0,
                                 crossAxisSpacing: 8.0,
-                                childAspectRatio: 3,
+                                childAspectRatio: 2.7,
                               ),
                               itemCount: options.length,
+                              // Inside GridView.builder
                               itemBuilder: (context, optionIndex) {
                                 String option = options[optionIndex];
+
+                                // Define a list of colors for the answer options
+                                List<Color> optionColors = [
+                                  Colors.green[200]!,
+                                  Colors.blue[200]!,
+                                  Colors.orange[200]!,
+                                  Colors.purple[200]!,
+                                ];
 
                                 return GestureDetector(
                                   onTap: () {
@@ -268,21 +277,27 @@ class _QuizPageState extends State<QuizPage> {
                                       color:
                                           selectedAnswers[index] == optionIndex
                                               ? Colors.lightBlue[200]
-                                              : const Color.fromARGB(
-                                                  255, 184, 233, 7),
+                                              : optionColors[optionIndex %
+                                                  optionColors.length],
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: Center(
                                       child: Text(
                                         option,
                                         style: const TextStyle(fontSize: 16),
+                                        textAlign: TextAlign.center,
+                                        maxLines:
+                                            2, // Menentukan jumlah baris maksimum
+                                        overflow: TextOverflow
+                                            .ellipsis, // Menggunakan elipsis jika teks terlalu panjang
+                                        softWrap:
+                                            true, // Memungkinkan teks untuk membungkus
                                       ),
                                     ),
                                   ),
                                 );
                               },
                             ),
-                            const Divider(thickness: 2, color: Colors.grey),
                           ],
                         ),
                       );
@@ -293,7 +308,27 @@ class _QuizPageState extends State<QuizPage> {
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
                     onPressed: () => _finishQuiz(context),
-                    child: const Text('Finish'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          Colors.blueAccent, // Button background color
+                      foregroundColor: Colors.white, // Text color
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 40), // Padding inside the button
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(12), // Rounded corners
+                      ),
+                      elevation: 5, // Shadow effect
+                      textStyle: const TextStyle(
+                        fontSize: 18, // Larger text size
+                        fontWeight: FontWeight.bold, // Bold text
+                      ),
+                      side: const BorderSide(
+                          color: Colors.blueAccent,
+                          width: 2), // Border color and thickness
+                    ),
+                    child: const Text('Selesai'),
                   ),
                 ),
               ],

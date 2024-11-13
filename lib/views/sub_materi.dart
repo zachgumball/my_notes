@@ -8,7 +8,7 @@ class SubMateri extends StatelessWidget {
   const SubMateri({super.key, required this.subjectName});
 
   Future<Map<String, dynamic>> _fetchDataFromFirestore() async {
-    FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
     Map<String, dynamic> result = {
       'title': subjectName,
       'imageUrl': '',
@@ -17,7 +17,7 @@ class SubMateri extends StatelessWidget {
 
     try {
       // Ambil sub-materi sesuai dengan subject name
-      QuerySnapshot subMateriSnapshot = await _firestore
+      QuerySnapshot subMateriSnapshot = await firestore
           .collection('mata_pelajaran')
           .doc(subjectName)
           .collection('sub_materi')
@@ -31,18 +31,18 @@ class SubMateri extends StatelessWidget {
         // Ambil data teks_kolom dan gambar_kolom secara berurutan
         int index = 1;
         while (true) {
-          String teksKolom = 'teks_kolom$index';
-          String gambarKolom = 'gambar_kolom$index';
+          String teksKolomField = 'teks_kolom$index'; // Renamed variable
+          String gambarKolomField = 'gambar_kolom$index'; // Renamed variable
 
-          String? teks_kolom = document[teksKolom];
-          String? gambar_kolom = document[gambarKolom];
+          String? teksKolom = document[teksKolomField];
+          String? gambarKolom = document[gambarKolomField];
 
-          if (teks_kolom == null || gambar_kolom == null) {
+          if (teksKolom == null || gambarKolom == null) {
             break;
           }
 
           result['items']
-              .add({'teks_kolom': teks_kolom, 'gambar_kolom': gambar_kolom});
+              .add({'teks_kolom': teksKolom, 'gambar_kolom': gambarKolom});
 
           index++;
         }
@@ -58,7 +58,8 @@ class SubMateri extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(subjectName),
+        title: const Text("Sub Materi Pelajaran"),
+        centerTitle: true,
         backgroundColor: const Color.fromARGB(0, 5, 233, 237),
         elevation: 0,
       ),
@@ -92,36 +93,73 @@ class SubMateri extends StatelessWidget {
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top: 16.0, bottom: 30.0),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: SizedBox(
-                          width: 380,
-                          height: 200,
-                          child: data!['imageUrl'].isNotEmpty
-                              ? Image.network(
-                                  data['imageUrl'],
-                                  fit: BoxFit.cover,
-                                  loadingBuilder:
-                                      (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.broken_image,
-                                      size: 100,
-                                    );
-                                  },
-                                )
-                              : const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
+                      padding: const EdgeInsets.only(top: 16.0, bottom: 10.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(4), // Border padding
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: SizedBox(
+                            width: 330,
+                            height: 180,
+                            child: data!['imageUrl'].isNotEmpty
+                                ? Image.network(
+                                    data['imageUrl'],
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.broken_image,
+                                        size: 100,
+                                      );
+                                    },
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                          ),
                         ),
                       ),
                     ),
+                    Text(
+                      subjectName,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    // Decorative line below subjectName
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 60, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          15,
+                          (index) => Container(
+                            width: 4,
+                            height: 4,
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20), // Space after the line
                     Expanded(
                       child: ListView.builder(
                         itemCount: data['items'].length,

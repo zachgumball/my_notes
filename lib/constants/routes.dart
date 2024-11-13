@@ -5,3 +5,5 @@ const verifyEmailRoute = '/verify/';
 const subMateriRoute = '/sub_materi/';
 const materiPelajaranRoute = '/materi_pelajaran/';
 const leaderboardRoute = '/leaderboard/';
+const splashScreenRoute = '/splash';
+const homeRoute = '/home';

@@ -13,13 +13,13 @@ class MateriPelajaran extends StatefulWidget {
   final String isiMateriId;
 
   const MateriPelajaran({
-    Key? key,
+    super.key,
     required this.teksKolom,
     required this.gambarKolom,
     required this.materiDocumentId,
     required this.subMateriDocumentId,
     required this.isiMateriId,
-  }) : super(key: key);
+  });
 
   @override
   _MateriPelajaranState createState() => _MateriPelajaranState();
@@ -91,7 +91,7 @@ class _MateriPelajaranState extends State<MateriPelajaran> {
   }
 
   // Mengambil URL objek 3D dari Firestore
-  void fetchUrl3DObject(
+  Future<void> fetchUrl3DObject(
       String materiDocId, String subMateriDocId, String isiMateriId) async {
     try {
       DocumentSnapshot snapshot = await FirebaseFirestore.instance
@@ -105,7 +105,8 @@ class _MateriPelajaranState extends State<MateriPelajaran> {
 
       if (snapshot.exists) {
         setState(() {
-          url3DObject = snapshot['url3DObject']; // Menyimpan URL objek 3D
+          url3DObject = snapshot['url3DObject'];
+          print("Fetched 3D Model URL: $url3DObject"); // Debugging line
         });
       }
     } catch (e) {
@@ -320,7 +321,12 @@ class _MateriPelajaranState extends State<MateriPelajaran> {
         },
         backgroundColor: Colors.blue[400],
         tooltip: 'Mulai Quiz',
-        child: const Icon(Icons.question_mark),
+        child: Image.asset(
+          'assets/quiz.png', // Ganti dengan path gambar kamu
+          width: 50, // Sesuaikan ukuran gambar jika diperlukan
+          height: 50,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }
@@ -329,7 +335,7 @@ class _MateriPelajaranState extends State<MateriPelajaran> {
 class ModelViewerPage extends StatelessWidget {
   final String modelUrl;
 
-  const ModelViewerPage({Key? key, required this.modelUrl}) : super(key: key);
+  const ModelViewerPage({super.key, required this.modelUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -339,7 +345,7 @@ class ModelViewerPage extends StatelessWidget {
       ),
       body: Center(
         child: ModelViewer(
-          src: modelUrl, // Pastikan URL ini benar
+          src: modelUrl,
           autoRotate: true,
           ar: true,
           cameraControls: true,

@@ -130,6 +130,15 @@ class _RegisterViewState extends State<RegisterView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Menambahkan gambar dan memastikan gambar berada di tengah
+                Center(
+                  child: Image.asset(
+                    'assets/register.png',
+                    width: 300,
+                    height: 300,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 const Text(
                   'Buat Akun',
                   style: TextStyle(
@@ -155,8 +164,6 @@ class _RegisterViewState extends State<RegisterView> {
                     contentPadding: const EdgeInsets.all(16),
                   ),
                 ),
-                // Kolom untuk kelas
-
                 const SizedBox(height: 16),
                 // Kolom untuk email
                 TextField(

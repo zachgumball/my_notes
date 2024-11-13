@@ -58,8 +58,15 @@ class _LoginViewState extends State<LoginView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Menambahkan gambar welcome.png di atas kalimat 'Selamat Datang!'
+                Image.asset(
+                  'assets/welcome.png',
+                  width: 300, // Sesuaikan ukuran gambar
+                  height: 300, // Sesuaikan ukuran gambar
+                ),
+                const SizedBox(height: 20),
                 const Text(
-                  'Selamat Datang Kembali!',
+                  'Selamat Datang!',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,

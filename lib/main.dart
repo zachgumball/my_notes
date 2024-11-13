@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/firebase_options.dart';
 import 'package:mynotes/views/sub_materi.dart';
@@ -11,6 +10,7 @@ import 'package:mynotes/views/register_view.dart';
 import 'package:mynotes/views/verify_email_view.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:mynotes/splash_screen_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +27,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/',
+      initialRoute: splashScreenRoute,
       routes: {
-        '/': (context) => const HomePage(),
+        splashScreenRoute: (context) => const SplashScreen(),
+        homeRoute: (context) => const HomePage(),
         loginRoute: (context) => const LoginView(),
         notesRoute: (context) => const NotesView(),
         registerRoute: (context) => const RegisterView(),
@@ -346,12 +347,17 @@ class _NotesViewState extends State<NotesView> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,
-        onTap: (index) {
+        onTap: (index) async {
           setState(() {
             _selectedIndex = index;
           });
+
           if (index == 1) {
-            Navigator.of(context).pushNamed(leaderboardRoute);
+            // Navigasi ke halaman leaderboard dan kembali ke ikon Home setelahnya
+            await Navigator.of(context).pushNamed(leaderboardRoute);
+            setState(() {
+              _selectedIndex = 0;
+            });
           }
         },
       ),

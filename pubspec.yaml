@@ -47,7 +47,7 @@ dependencies:
   permission_handler: ^11.3.1
   flutter_colorpicker: ^1.1.0
   flutter_widget_from_html: ^0.15.2
-  reflectable: ^3.0.0
+  flutter_animate: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -75,7 +75,10 @@ flutter:
   assets:
     - assets/background/background1.jpg
     - assets/background/background2.png
-    
+    - assets/cartoon.png
+    - assets/welcome.png
+    - assets/register.png
+    - assets/quiz.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
