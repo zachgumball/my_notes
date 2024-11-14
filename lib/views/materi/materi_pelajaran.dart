@@ -347,6 +347,7 @@ class ModelViewerPage extends StatelessWidget {
         child: ModelViewer(
           src: modelUrl,
           autoRotate: true,
+          autoPlay: true,
           ar: true,
           cameraControls: true,
           backgroundColor: Colors.white,

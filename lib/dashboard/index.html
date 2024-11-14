@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Mata Pelajaran</title>
+    <title>Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         /* Centering and box styling */
@@ -138,13 +138,37 @@
             <form id="subjectForm">
                 <input type="text" id="nama" placeholder="Nama Mata Pelajaran" required>
                 <input type="text" id="ikon" placeholder="Ikon URL" required>
+                <legend style="color: gray;">
+                    <small><span style="color: red;">*</span> Disarankan gambar ekstensi .png transparan</small>
+                  </legend>
+                  <br>                  
                 <label for="warna">Warna Kolom:</label>
 <div id="colorPicker" style="display: flex; align-items: center;">
     <input type="color" id="warna" value="#FF5733" style="width: 40px; height: 40px; padding: 0; border: none; outline: none;"/>
 </div>
                 <button type="submit">Tambah Mata Pelajaran</button>
+                <button id="saveChanges" style="display: none; color: blue;">Simpan Perubahan</button>
             </form>
             <div id="message"></div>
+
+            
+            <!-- Tambahkan Tabel Mata Pelajaran yang sudah disimpan -->
+<div id="subjectTableContainer">
+    <h3>Data Mata Pelajaran</h3>
+    <table id="existingSubjectTable">
+        <thead>
+            <tr>
+                <th>Nama Mata Pelajaran</th>
+                <th>Ikon</th>
+                <th>Warna Kolom</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="existingSubjectTableBody">
+            <!-- Data Mata Pelajaran akan ditambahkan oleh JavaScript -->
+        </tbody>
+    </table>
+</div>
         </div>
 
         <!-- Halaman Tabel Mata Pelajaran untuk Sub Materi -->
@@ -179,7 +203,6 @@
                 <button type="submit" style="background-color: blue;">Simpan Sub Materi</button>
                 <button type="button" id="addColumnButton">Tambah Kolom</button>
             </form>
-            <button type="button" id="addColumnButton">Tambah Kolom</button>
             <div id="subtopicMessage"></div>
             <h3>Daftar Sub Materi</h3>
             <table id="subtopicTable">
@@ -201,7 +224,7 @@
     <script type="module">
         // Konfigurasi Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, setDoc, doc, getDocs, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, setDoc, doc, getDocs, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDTdva2L7ofrImgJ3OmFwskWEZqaZbuRoE",
@@ -420,6 +443,128 @@ document.getElementById('addSubjectLink').addEventListener('click', () => {
             document.getElementById('additionalColumns').appendChild(newColumn);
         });
 
+        // Fungsi untuk menampilkan data mata pelajaran yang sudah ada dan memperbarui tabel secara otomatis
+async function displaySubjects() {
+    const subjectTableBody = document.getElementById('existingSubjectTableBody');
+    subjectTableBody.innerHTML = ''; // Reset tabel sebelum menambah data baru
+
+    // Menggunakan onSnapshot untuk mendengarkan perubahan data secara real-time
+    const querySnapshot = await getDocs(collection(db, 'mata_pelajaran'));
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${data.nama}</td>
+            <td><img src="${data.ikon}" alt="${data.nama}" style="width: 50px; height: auto;"></td>
+            <td style="background-color: ${data.warna};">${data.warna}</td>
+            <td>
+                <button class="edit-subject" data-id="${doc.id}">Edit</button>
+                <button class="delete-subject" data-id="${doc.id}">Hapus</button>
+            </td>
+        `;
+        subjectTableBody.appendChild(row);
+    });
+
+    // Menangani tombol Edit dan Hapus
+    handleEditDeleteButtons();
+}
+// Fungsi untuk menangani tombol Edit dan Hapus
+function handleEditDeleteButtons() {
+    const editButtons = document.querySelectorAll('.edit-subject');
+    const deleteButtons = document.querySelectorAll('.delete-subject');
+
+    // Menangani tombol Edit
+    editButtons.forEach(button => {
+        button.addEventListener('click', async () => {
+            const subjectId = button.getAttribute('data-id');
+            const subjectRef = doc(db, 'mata_pelajaran', subjectId);
+            const subjectDoc = await getDoc(subjectRef);
+            if (subjectDoc.exists()) {
+                const data = subjectDoc.data();
+                // Populate form fields with existing data
+                document.getElementById('nama').value = data.nama;
+                document.getElementById('ikon').value = data.ikon;
+                document.getElementById('warna').value = data.warna;
+
+                // Simpan ID dokumen yang sedang di-edit
+                const saveChangesButton = document.getElementById('saveChanges');
+                saveChangesButton.style.display = 'inline-block'; // Tampilkan tombol
+                saveChangesButton.setAttribute('data-id', subjectId);
+            }
+        });
+    });
+
+    // Menangani tombol Hapus
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', async () => {
+            const subjectId = button.getAttribute('data-id');
+            const confirmDelete = confirm('Anda yakin ingin menghapus mata pelajaran ini?');
+            if (confirmDelete) {
+                try {
+                    await deleteDoc(doc(db, 'mata_pelajaran', subjectId));
+                    document.getElementById('message').innerText = 'Mata pelajaran berhasil dihapus!';
+                } catch (error) {
+                    console.error('Error deleting document: ', error);
+                    document.getElementById('message').innerText = 'Terjadi kesalahan saat menghapus mata pelajaran.';
+                }
+            }
+        });
+    });
+
+    // Fungsi untuk menangani tombol "Save Changes"
+document.getElementById('saveChanges').addEventListener('click', async () => {
+    const subjectId = document.getElementById('saveChanges').getAttribute('data-id'); // Ambil ID dari tombol yang sedang aktif
+    if (subjectId) {
+        const updatedData = {
+            nama: document.getElementById('nama').value,
+            ikon: document.getElementById('ikon').value,
+            warna: document.getElementById('warna').value,
+        };
+        try {
+            const subjectRef = doc(db, 'mata_pelajaran', subjectId);
+            await updateDoc(subjectRef, updatedData); // Update Firestore document
+            document.getElementById('message').innerText = 'Mata pelajaran berhasil diubah!';
+
+            // Refresh the table to show the updated data immediately
+            displaySubjects(); // Call the function to refresh the table
+
+        } catch (error) {
+            console.error('Error updating document: ', error);
+            document.getElementById('message').innerText = 'Terjadi kesalahan saat mengubah mata pelajaran.';
+        }
+    }
+});
+}
+
+
+// Panggil fungsi displaySubjects untuk menampilkan data yang ada
+window.onload = displaySubjects;
+
+// Menambahkan listener untuk memperbarui tabel secara otomatis ketika ada perubahan data
+const subjectCollectionRef = collection(db, 'mata_pelajaran');
+onSnapshot(subjectCollectionRef, (querySnapshot) => {
+    // Kosongkan tabel terlebih dahulu
+    const subjectTableBody = document.getElementById('existingSubjectTableBody');
+    subjectTableBody.innerHTML = ''; // Reset table content
+
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${data.nama}</td>
+            <td><img src="${data.ikon}" alt="${data.nama}" style="width: 50px; height: auto;"></td>
+            <td style="background-color: ${data.warna};">${data.warna}</td>
+            <td>
+                <button class="edit-subject" data-id="${doc.id}">Edit</button>
+                <button class="delete-subject" data-id="${doc.id}">Hapus</button>
+            </td>
+        `;
+        subjectTableBody.appendChild(row);
+    });
+
+    // Menangani tombol Edit dan Hapus
+    handleEditDeleteButtons();
+});
     </script>
 </body>
 </html>
