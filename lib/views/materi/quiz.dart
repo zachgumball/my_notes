@@ -112,10 +112,10 @@ class _QuizPageState extends State<QuizPage> {
 
         // Mengupdate skor berdasarkan jawaban
         if (correctAnswers[questionIndex] && !isCorrect) {
-          score -= 200;
+          score -= 100;
           correctAnswers[questionIndex] = false;
         } else if (!correctAnswers[questionIndex] && isCorrect) {
-          score += 200;
+          score += 100;
           correctAnswers[questionIndex] = true;
         }
 
@@ -151,7 +151,7 @@ class _QuizPageState extends State<QuizPage> {
     }
   }
 
-  // Mengakhiri kuis dan menampilkan dialog hasil skor
+// Mengakhiri kuis dan menampilkan dialog hasil skor
   void _finishQuiz(BuildContext context) {
     countdownTimer?.cancel();
 
@@ -159,26 +159,92 @@ class _QuizPageState extends State<QuizPage> {
       showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: const Text('Quiz Selesai'),
-            content: Text(
-                'Skor kamu adalah: $score\nSkor yang terbuang: $lostScore'),
-            actions: [
-              TextButton(
-                child: const Text('Back'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            elevation: 8.0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16.0),
+                gradient: const LinearGradient(
+                  colors: [Colors.blueAccent, Colors.purpleAccent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              TextButton(
-                child: const Text('Restart'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _initializeQuiz();
-                },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Display the GIF with animation effect (GIF animation will be handled natively)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset('assets/congrats.gif',
+                        height: 150, width: 150),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Skor kamu adalah: $score',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Back button with modern style
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[800],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text('Back'),
+                      ),
+                      const SizedBox(width: 20),
+                      // Restart button with a contrasting style
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _initializeQuiz();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.purple[800],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text('Restart'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         },
       );
@@ -234,7 +300,7 @@ class _QuizPageState extends State<QuizPage> {
                             Container(
                               padding: const EdgeInsets.all(12.0),
                               decoration: BoxDecoration(
-                                color: Colors.blue[100],
+                                color: const Color.fromARGB(255, 135, 202, 229),
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
                               child: Text(
@@ -255,7 +321,6 @@ class _QuizPageState extends State<QuizPage> {
                                 childAspectRatio: 2.7,
                               ),
                               itemCount: options.length,
-                              // Inside GridView.builder
                               itemBuilder: (context, optionIndex) {
                                 String option = options[optionIndex];
 
@@ -267,37 +332,53 @@ class _QuizPageState extends State<QuizPage> {
                                   Colors.purple[200]!,
                                 ];
 
+                                bool isSelected =
+                                    selectedAnswers[index] == optionIndex;
+
                                 return GestureDetector(
                                   onTap: () {
                                     _selectAnswer(index, optionIndex);
                                   },
-                                  child: Container(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(
+                                        milliseconds:
+                                            300), // Animation duration
                                     padding: const EdgeInsets.all(12.0),
                                     decoration: BoxDecoration(
-                                      color:
-                                          selectedAnswers[index] == optionIndex
-                                              ? Colors.lightBlue[200]
-                                              : optionColors[optionIndex %
-                                                  optionColors.length],
+                                      color: isSelected
+                                          ? const Color.fromARGB(255, 10, 112,
+                                              237) // Selected color
+                                          : optionColors[optionIndex %
+                                              optionColors.length],
                                       borderRadius: BorderRadius.circular(8.0),
+                                      border: isSelected
+                                          ? Border.all(
+                                              color: Colors.blueAccent,
+                                              width:
+                                                  2.0, // Border thickness for selected answer
+                                            )
+                                          : Border.all(
+                                              color: Colors.transparent,
+                                              width:
+                                                  2.0, // No border for non-selected answers
+                                            ),
                                     ),
                                     child: Center(
                                       child: Text(
                                         option,
                                         style: const TextStyle(fontSize: 16),
                                         textAlign: TextAlign.center,
-                                        maxLines:
-                                            2, // Menentukan jumlah baris maksimum
+                                        maxLines: 2, // Max number of lines
                                         overflow: TextOverflow
-                                            .ellipsis, // Menggunakan elipsis jika teks terlalu panjang
+                                            .ellipsis, // Ellipsis if text is too long
                                         softWrap:
-                                            true, // Memungkinkan teks untuk membungkus
+                                            true, // Wraps text if necessary
                                       ),
                                     ),
                                   ),
                                 );
                               },
-                            ),
+                            )
                           ],
                         ),
                       );
@@ -309,8 +390,8 @@ class _QuizPageState extends State<QuizPage> {
                   child: ElevatedButton(
                     onPressed: () => _finishQuiz(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Colors.blueAccent, // Button background color
+                      backgroundColor: const Color.fromARGB(
+                          255, 91, 142, 231), // Button background color
                       foregroundColor: Colors.white, // Text color
                       padding: const EdgeInsets.symmetric(
                           vertical: 14,

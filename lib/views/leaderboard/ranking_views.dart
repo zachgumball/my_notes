@@ -2,12 +2,70 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class LeaderboardViews extends StatelessWidget {
+class LeaderboardViews extends StatefulWidget {
   const LeaderboardViews({super.key});
+
+  @override
+  _LeaderboardViewsState createState() => _LeaderboardViewsState();
+}
+
+class _LeaderboardViewsState extends State<LeaderboardViews>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Color?> _colorAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize the AnimationController
+    _controller = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(); // Repeat animation indefinitely
+
+    // Define a sequence of colors for a colorful pulsing effect
+    _colorAnimation = TweenSequence<Color?>(
+      [
+        TweenSequenceItem(
+          tween: ColorTween(
+              begin: Colors.green.shade50, end: Colors.blue.shade100),
+          weight: 1,
+        ),
+        TweenSequenceItem(
+          tween: ColorTween(
+              begin: Colors.blue.shade100, end: Colors.purple.shade100),
+          weight: 1,
+        ),
+        TweenSequenceItem(
+          tween: ColorTween(
+              begin: Colors.purple.shade100, end: Colors.pink.shade100),
+          weight: 1,
+        ),
+        TweenSequenceItem(
+          tween: ColorTween(
+              begin: Colors.pink.shade100, end: Colors.orange.shade100),
+          weight: 1,
+        ),
+        TweenSequenceItem(
+          tween: ColorTween(
+              begin: Colors.orange.shade100, end: Colors.green.shade50),
+          weight: 1,
+        ),
+      ],
+    ).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ranking'),
@@ -38,12 +96,12 @@ class LeaderboardViews extends StatelessWidget {
           List<Map<String, dynamic>> scoresList = leaderboardData.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
 
-            final name = data['name'] ?? 'Unknown'; // Mengambil nama pengguna
+            final name = data['name'] ?? 'Unknown';
             int totalScore = 0;
 
             data.forEach((key, value) {
               if (key.startsWith('skor_quiz') && value is int) {
-                totalScore += value; // Menjumlahkan semua skor kuis
+                totalScore += value;
               }
             });
 
@@ -77,44 +135,55 @@ class LeaderboardViews extends StatelessWidget {
                 borderColor = Colors.transparent;
               }
 
-              // Highlight current user with an animation
+              // Check if this is the current user to apply animation
               bool isCurrentUser = currentUserRank == index;
 
-              return AnimatedContainer(
-                duration:
-                    const Duration(milliseconds: 500), // Duration for animation
-                margin: const EdgeInsets.symmetric(vertical: 4.0),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: isCurrentUser ? Colors.green : borderColor,
-                    width: isCurrentUser ? 3 : (index < 3 ? 3 : 0),
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  color: isCurrentUser ? Colors.green.shade50 : null,
-                ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: isCurrentUser ? Colors.green : borderColor,
-                    child: Text(
-                      '${index + 1}', // Menampilkan ranking
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+              return AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isCurrentUser ? Colors.green : borderColor,
+                        width: isCurrentUser ? 5 : (index < 3 ? 4 : 0),
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      color: isCurrentUser
+                          ? _colorAnimation.value
+                          : const Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor:
+                            isCurrentUser ? Colors.green : borderColor,
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18, // Increased font size
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        name,
+                        style: TextStyle(
+                          fontWeight:
+                              index < 3 ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 18, // Increased font size for name
+                        ),
+                      ),
+                      trailing: Text(
+                        '$totalScore',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18, // Increased font size for score
+                        ),
                       ),
                     ),
-                  ),
-                  title: Text(
-                    name,
-                    style: TextStyle(
-                      fontWeight:
-                          index < 3 ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                  trailing: Text(
-                    '$totalScore', // Menampilkan total skor
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
+                  );
+                },
               );
             },
           );

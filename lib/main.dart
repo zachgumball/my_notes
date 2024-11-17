@@ -11,6 +11,7 @@ import 'package:mynotes/views/verify_email_view.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:mynotes/splash_screen_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: splashScreenRoute,
+      initialRoute: splashScreenRoute, // Rute awal aplikasi
       routes: {
         splashScreenRoute: (context) => const SplashScreen(),
         homeRoute: (context) => const HomePage(),
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         registerRoute: (context) => const RegisterView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
         subMateriRoute: (context) {
+          // Ambil argument yang diteruskan untuk halaman SubMateri
           final args = ModalRoute.of(context)!.settings.arguments
               as Map<String, dynamic>;
           return SubMateri(subjectName: args['subjectName']);
@@ -52,6 +54,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
+      // Inisialisasi Firebase
       future: Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       ),
@@ -61,10 +64,10 @@ class HomePage extends StatelessWidget {
             final user = FirebaseAuth.instance.currentUser;
             if (user != null) {
               return user.emailVerified
-                  ? const NotesView()
-                  : const VerifyEmailView();
+                  ? const NotesView() // Navigasi ke NotesView jika email terverifikasi
+                  : const VerifyEmailView(); // Navigasi ke halaman verifikasi jika belum
             } else {
-              return const LoginView();
+              return const LoginView(); // Tampilkan halaman login jika belum ada user
             }
           default:
             return const Center(child: CircularProgressIndicator());
@@ -83,17 +86,17 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   String _name = '';
-  int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
+    _fetchUserData(); // Ambil data pengguna saat inisialisasi
   }
 
   Future<void> _fetchUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      // Ambil data pengguna dari Firestore berdasarkan UID
       DocumentSnapshot snapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -107,6 +110,7 @@ class _NotesViewState extends State<NotesView> {
   }
 
   String _getGreeting() {
+    // Berikan ucapan berdasarkan waktu saat ini
     final hour = DateTime.now().hour;
     if (hour < 10) {
       return 'Selamat Pagi, selamat beraktifitas!';
@@ -120,14 +124,15 @@ class _NotesViewState extends State<NotesView> {
   }
 
   Future<void> addMataPelajaran(String nama, String ikon, String warna) async {
+    // Tambah data mata pelajaran ke Firestore
     CollectionReference pelajaran =
         FirebaseFirestore.instance.collection('mata_pelajaran');
 
     try {
       await pelajaran.add({
         'nama': nama,
-        'ikon': ikon, // This should be the image URL
-        'warna': warna,
+        'ikon': ikon, // URL ikon
+        'warna': warna, // Kode warna
       });
       print('Mata Pelajaran berhasil ditambahkan!');
     } catch (e) {
@@ -155,6 +160,7 @@ class _NotesViewState extends State<NotesView> {
                 IconButton(
                   icon: const Icon(Icons.menu),
                   onPressed: () {
+                    // Tampilkan modal saat tombol menu ditekan
                     showModalBottomSheet(
                       context: context,
                       builder: (context) {
@@ -272,8 +278,7 @@ class _NotesViewState extends State<NotesView> {
                           itemBuilder: (context, index) {
                             final pelajaran = pelajaranDocs[index];
                             final nama = pelajaran['nama'];
-                            final ikonUrl =
-                                pelajaran['ikon']; // URL of the icon
+                            final ikonUrl = pelajaran['ikon'];
                             final warna = pelajaran['warna'];
 
                             return GestureDetector(
@@ -298,24 +303,22 @@ class _NotesViewState extends State<NotesView> {
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Image.network(
-                                        ikonUrl,
-                                        width: 50,
-                                        height: 50,
+                                      CachedNetworkImage(
+                                        imageUrl: ikonUrl,
+                                        width: 100,
+                                        height: 100,
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(Icons.broken_image),
                                       ),
                                       const SizedBox(height: 10),
                                       AutoSizeText(
                                         nama,
                                         style: const TextStyle(
-                                          color: Color.fromARGB(
-                                              255, 253, 252, 252),
-                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.white,
                                         ),
                                         maxLines: 2,
-                                        minFontSize: 14,
-                                        maxFontSize: 18,
-                                        overflow: TextOverflow.ellipsis,
                                         textAlign: TextAlign.center,
                                       ),
                                     ],
@@ -334,55 +337,33 @@ class _NotesViewState extends State<NotesView> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.leaderboard),
-            label: 'Ranking',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        onTap: (index) async {
-          setState(() {
-            _selectedIndex = index;
-          });
-
-          if (index == 1) {
-            // Navigasi ke halaman leaderboard dan kembali ke ikon Home setelahnya
-            await Navigator.of(context).pushNamed(leaderboardRoute);
-            setState(() {
-              _selectedIndex = 0;
-            });
-          }
-        },
-      ),
     );
   }
+}
 
-  Future<bool> showLogOutDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Keluar'),
-          content: const Text('Apakah Anda yakin ingin keluar?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Keluar'),
-            ),
-          ],
-        );
-      },
-    ).then((value) => value ?? false);
-  }
+Future<bool> showLogOutDialog(BuildContext context) async {
+  return await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Keluar'),
+            content: const Text('Apakah Anda yakin ingin keluar?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text('Keluar'),
+              ),
+            ],
+          );
+        },
+      ) ??
+      false;
 }

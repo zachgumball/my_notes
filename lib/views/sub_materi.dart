@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mynotes/views/materi/materi_pelajaran.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class SubMateri extends StatelessWidget {
   final String subjectName;
 
   const SubMateri({super.key, required this.subjectName});
 
+  // Mengambil data dari Firestore sesuai dengan subjectName
   Future<Map<String, dynamic>> _fetchDataFromFirestore() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     Map<String, dynamic> result = {
@@ -16,7 +18,7 @@ class SubMateri extends StatelessWidget {
     };
 
     try {
-      // Ambil sub-materi sesuai dengan subject name
+      // Mengambil sub-materi sesuai dengan nama mata pelajaran
       QuerySnapshot subMateriSnapshot = await firestore
           .collection('mata_pelajaran')
           .doc(subjectName)
@@ -28,11 +30,11 @@ class SubMateri extends StatelessWidget {
 
         result['imageUrl'] = document['gambar'] ?? '';
 
-        // Ambil data teks_kolom dan gambar_kolom secara berurutan
+        // Mengambil data teks_kolom dan gambar_kolom secara berurutan
         int index = 1;
         while (true) {
-          String teksKolomField = 'teks_kolom$index'; // Renamed variable
-          String gambarKolomField = 'gambar_kolom$index'; // Renamed variable
+          String teksKolomField = 'teks_kolom$index';
+          String gambarKolomField = 'gambar_kolom$index';
 
           String? teksKolom = document[teksKolomField];
           String? gambarKolom = document[gambarKolomField];
@@ -76,6 +78,23 @@ class SubMateri extends StatelessWidget {
 
           final data = snapshot.data;
 
+          if (data != null && data['imageUrl'].isNotEmpty) {
+            // Preload gambar utama sebelum merender
+            precacheImage(
+                CachedNetworkImageProvider(data['imageUrl']), context);
+          }
+
+          // Preload gambar untuk setiap item
+          if (data != null && data['items'] != null) {
+            for (var item in data['items']) {
+              if (item['gambar_kolom'] != null &&
+                  item['gambar_kolom'].isNotEmpty) {
+                precacheImage(
+                    CachedNetworkImageProvider(item['gambar_kolom']), context);
+              }
+            }
+          }
+
           return Stack(
             children: [
               Positioned.fill(
@@ -95,7 +114,7 @@ class SubMateri extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 16.0, bottom: 10.0),
                       child: Container(
-                        padding: const EdgeInsets.all(4), // Border padding
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.black, width: 2),
                           borderRadius: BorderRadius.circular(20),
@@ -105,27 +124,17 @@ class SubMateri extends StatelessWidget {
                           child: SizedBox(
                             width: 330,
                             height: 180,
-                            child: data!['imageUrl'].isNotEmpty
-                                ? Image.network(
-                                    data['imageUrl'],
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(
-                                        Icons.broken_image,
-                                        size: 100,
-                                      );
-                                    },
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
+                            child: CachedNetworkImage(
+                              imageUrl: data!['imageUrl'],
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(
+                                Icons.broken_image,
+                                size: 100,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -138,7 +147,7 @@ class SubMateri extends StatelessWidget {
                       ),
                     ),
 
-                    // Decorative line below subjectName
+                    // Garis dekoratif di bawah subjectName
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 60, vertical: 8),
@@ -159,7 +168,7 @@ class SubMateri extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 20), // Space after the line
+                    const SizedBox(height: 20), // Jarak setelah garis dekoratif
                     Expanded(
                       child: ListView.builder(
                         itemCount: data['items'].length,
@@ -208,6 +217,7 @@ class SubMateri extends StatelessWidget {
     );
   }
 
+  // Widget untuk membangun item sub-materi dalam list
   Widget _buildItem({required String image, required String title}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -244,17 +254,15 @@ class SubMateri extends StatelessWidget {
                 ),
                 child: Opacity(
                   opacity: 0.8,
-                  child: Image.network(
-                    image,
+                  child: CachedNetworkImage(
+                    imageUrl: image,
                     fit: BoxFit.cover,
                     width: 100,
                     height: 100,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.broken_image,
-                        size: 100,
-                      );
-                    },
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.broken_image,
+                      size: 100,
+                    ),
                   ),
                 ),
               ),

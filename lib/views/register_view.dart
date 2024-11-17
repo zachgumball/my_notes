@@ -130,7 +130,6 @@ class _RegisterViewState extends State<RegisterView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Menambahkan gambar dan memastikan gambar berada di tengah
                 Center(
                   child: Image.asset(
                     'assets/register.png',

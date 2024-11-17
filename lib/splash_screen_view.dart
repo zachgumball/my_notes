@@ -18,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHomePage() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2));
     Navigator.pushReplacementNamed(context, homeRoute);
   }
 
@@ -30,10 +30,9 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Menampilkan gambar cartoon.png dengan animasi fade-in
+            // Menampilkan gambar cartoon.png
             AnimatedContainer(
               duration: const Duration(seconds: 2),
-              curve: Curves.easeInOut,
               child: Image.asset(
                 'assets/cartoon.png',
                 width: 200,
@@ -44,11 +43,10 @@ class _SplashScreenState extends State<SplashScreen> {
             // Loading Bar
             TweenAnimationBuilder<double>(
               tween: Tween<double>(begin: 0, end: 1),
-              duration: const Duration(seconds: 3),
+              duration: const Duration(seconds: 2),
               builder: (context, value, child) {
                 return Column(
                   children: [
-                    // LinearProgressIndicator (loading bar)
                     SizedBox(
                       width: 200, // Lebar loading bar
                       child: LinearProgressIndicator(

@@ -3,7 +3,7 @@ import 'package:mynotes/views/materi/quiz.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart'; // Updated import
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 class MateriPelajaran extends StatefulWidget {
   final String teksKolom;
@@ -106,11 +106,11 @@ class _MateriPelajaranState extends State<MateriPelajaran> {
       if (snapshot.exists) {
         setState(() {
           url3DObject = snapshot['url3DObject'];
-          print("Fetched 3D Model URL: $url3DObject"); // Debugging line
+          ("Fetched 3D Model URL: $url3DObject");
         });
       }
     } catch (e) {
-      print('Error fetching url3DObject: $e');
+      ('Error fetching url3DObject: $e');
     }
   }
 
@@ -203,7 +203,6 @@ class _MateriPelajaranState extends State<MateriPelajaran> {
                             snapshot.data!, // Data HTML dari Firestore
                             textStyle: const TextStyle(fontSize: 16),
                             customWidgetBuilder: (element) {
-                              // Handle img elements
                               if (element.localName == 'img') {
                                 final src = element.attributes['src'] ?? '';
                                 return Image.network(src);
@@ -288,33 +287,90 @@ class _MateriPelajaranState extends State<MateriPelajaran> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Konfirmasi'),
-                content: const Text('Apakah kamu ingin melakukan quiz?'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Tidak'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => QuizPage(
-                            materiDocumentId: widget.materiDocumentId,
-                            subMateriDocumentId: widget.subMateriDocumentId,
-                            isiMateriId: widget.isiMateriId,
-                          ),
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                backgroundColor: Colors.white,
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  height: 220,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Apakah kamu ingin melakukan quiz?',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
-                      );
-                    },
-                    child: const Text('Ya'),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red[400],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 25, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: const Text(
+                              'Tidak',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => QuizPage(
+                                    materiDocumentId: widget.materiDocumentId,
+                                    subMateriDocumentId:
+                                        widget.subMateriDocumentId,
+                                    isiMateriId: widget.isiMateriId,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[800],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 25, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: const Text(
+                              'Ya',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
+                ),
               );
             },
           );
@@ -322,8 +378,8 @@ class _MateriPelajaranState extends State<MateriPelajaran> {
         backgroundColor: Colors.blue[400],
         tooltip: 'Mulai Quiz',
         child: Image.asset(
-          'assets/quiz.png', // Ganti dengan path gambar kamu
-          width: 50, // Sesuaikan ukuran gambar jika diperlukan
+          'assets/quiz.png',
+          width: 50,
           height: 50,
           fit: BoxFit.contain,
         ),
