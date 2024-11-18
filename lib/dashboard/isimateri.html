@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="page-container">
         <header>
@@ -54,11 +56,13 @@
                     <div id="contentInput"></div>
 
                     <label for="hintInput">Teks Hint:</label>
-                    <textarea id="hintInput" rows="3" placeholder="Misalnya 'Ayo lihat 3d object Lampu!'" required></textarea>
+                    <textarea id="hintInput" rows="3" placeholder="Misalnya 'Ayo lihat 3d object Lampu!'"
+                        required></textarea>
 
                     <label for="url3DInput">URL 3D Object:</label>
                     <input type="url" id="url3DInput" placeholder="https://example.com/3dobject" required>
-                    <legend><small>Kamu bisa mengambil 3d model <a href="https://github.com/zachgumball/models_3d" target="_blank">disini</a></small></legend>
+                    <legend><small>Kamu bisa mengambil 3d model <a href="https://github.com/zachgumball/models_3d"
+                                target="_blank">disini</a></small></legend>
 
                     <div class="form-actions">
                         <button type="submit">Simpan</button>
@@ -76,7 +80,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-    
+
         const firebaseConfig = {
             apiKey: "AIzaSyDTdva2L7ofrImgJ3OmFwskWEZqaZbuRoE",
             authDomain: "mynotes-zynext.firebaseapp.com",
@@ -85,14 +89,14 @@
             messagingSenderId: "802670210215",
             appId: "1:802670210215:web:cedfff9cba00c3d798bf82"
         };
-    
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-    
+
         let selectedSubtopicId = '';
         let selectedSubjectId = '';
         let selectedTextId = '';
-    
+
         const quill = new Quill('#contentInput', {
             theme: 'snow',
             placeholder: 'Tulis isi materi di sini...',
@@ -107,18 +111,18 @@
                 ]
             }
         });
-    
+
         async function displaySubjects() {
             const subjectTableBody = document.getElementById('subjectTableBody');
             subjectTableBody.innerHTML = '';
-    
+
             const querySnapshot = await getDocs(collection(db, 'mata_pelajaran'));
             querySnapshot.forEach((doc) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td><button class="select-subject" data-id="${doc.id}">${doc.id}</button></td>`;
                 subjectTableBody.appendChild(row);
             });
-    
+
             const selectButtons = document.querySelectorAll('.select-subject');
             selectButtons.forEach(button => {
                 button.addEventListener('click', () => {
@@ -129,126 +133,127 @@
         }
 
         let teksKolom = '';
-    
+
         async function displaySubtopics(subjectId) {
-    document.getElementById('subtopicTableContainer').classList.remove('hidden');
-    const subtopicTableBody = document.getElementById('subtopicTableBody');
-    subtopicTableBody.innerHTML = '';
+            document.getElementById('subtopicTableContainer').classList.remove('hidden');
+            const subtopicTableBody = document.getElementById('subtopicTableBody');
+            subtopicTableBody.innerHTML = '';
 
-    const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
-    const subtopicSnapshot = await getDocs(subtopicRef);
+            const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
+            const subtopicSnapshot = await getDocs(subtopicRef);
 
-    subtopicSnapshot.forEach(doc => {
-        const data = doc.data();
-        const subtopicId = doc.id;
+            subtopicSnapshot.forEach(doc => {
+                const data = doc.data();
+                const subtopicId = doc.id;
 
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${subtopicId}</td>
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${subtopicId}</td>
             <td>
                 <ul>
-                    ${Object.keys(data).filter(key => key.startsWith('teks_kolom')).map(key => 
-                        `<li>
+                    ${Object.keys(data).filter(key => key.startsWith('teks_kolom')).map(key =>
+                    `<li>
                             <button class="select-text" data-subtopic-id="${subtopicId}" data-teks-kolom="${data[key]}" data-text-id="${key}">${data[key]}</button>
                         </li>`).join('')}
                 </ul>
             </td>`;
-        subtopicTableBody.appendChild(row);
-    });
+                subtopicTableBody.appendChild(row);
+            });
 
-    document.querySelectorAll('.select-text').forEach(button => {
-        button.addEventListener('click', () => {
-            selectedSubtopicId = button.getAttribute('data-subtopic-id');
-            teksKolom = button.getAttribute('data-teks-kolom');  // Get teks_kolom value
-            selectedTextId = button.getAttribute('data-text-id');
-            document.getElementById('formContainer').classList.remove('hidden');
-            loadExistingContent(teksKolom);  // Pass teks_kolom value
-        });
-    });
-}
+            document.querySelectorAll('.select-text').forEach(button => {
+                button.addEventListener('click', () => {
+                    selectedSubtopicId = button.getAttribute('data-subtopic-id');
+                    teksKolom = button.getAttribute('data-teks-kolom');  // Get teks_kolom value
+                    selectedTextId = button.getAttribute('data-text-id');
+                    document.getElementById('formContainer').classList.remove('hidden');
+                    loadExistingContent(teksKolom);  // Pass teks_kolom value
+                });
+            });
+        }
 
-    
-async function loadExistingContent(teksKolom) {
-    const docRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
-    const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()) {
-        const data = docSnap.data();
-        console.log("Isi Materi Data: ", data);
-        quill.root.innerHTML = data.isiMateri || '';  // Set Quill editor content
-        document.getElementById('hintInput').value = data.teksHint || '';  // Set hint
-        document.getElementById('url3DInput').value = data.url3DObject || '';  // Set URL
-    } else {
-        console.log("No data found for this document.");
-        quill.root.innerHTML = '';
-        document.getElementById('hintInput').value = '';
-        document.getElementById('url3DInput').value = '';
-    }
-}
+        async function loadExistingContent(teksKolom) {
+            const docRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                console.log("Isi Materi Data: ", data);
+                quill.root.innerHTML = data.isiMateri || '';  // Set Quill editor content
+                document.getElementById('hintInput').value = data.teksHint || '';  // Set hint
+                document.getElementById('url3DInput').value = data.url3DObject || '';  // Set URL
+            } else {
+                console.log("No data found for this document.");
+                quill.root.innerHTML = '';
+                document.getElementById('hintInput').value = '';
+                document.getElementById('url3DInput').value = '';
+            }
+        }
 
 
         // Function to convert GitHub URLs to jsDelivr URLs
         function convertToJsDelivr(url) {
-    const githubPattern = /^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/(.+)$/;
-    const match = url.match(githubPattern);
-    
-    if (match) {
-        const [_, user, repo, path] = match;
-        // Remove '/main/' from the path if it exists
-        const cleanedPath = path.replace(/^main\//, '');
-        return `https://cdn.jsdelivr.net/gh/${user}/${repo}/${cleanedPath}`;
-    }
-    
-    return url; // Return the original URL if it's not a GitHub URL
-}
+            const githubPattern = /^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/(.+)$/;
+            const match = url.match(githubPattern);
 
-        
-document.getElementById('contentForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    
-    const contentValue = quill.root.innerHTML;  // Get content from the Quill editor
-    const hintValue = document.getElementById('hintInput').value;  // Get hint text
-    let url3DValue = document.getElementById('url3DInput').value;  // Get URL 3D Object
+            if (match) {
+                const [_, user, repo, path] = match;
+                // Remove '/main/' from the path if it exists
+                const cleanedPath = path.replace(/^main\//, '');
+                return `https://cdn.jsdelivr.net/gh/${user}/${repo}/${cleanedPath}`;
+            }
 
-    // Convert the URL if it's a GitHub link
-    url3DValue = convertToJsDelivr(url3DValue);
-
-    // Determine the document reference with teksKolom as the document ID
-    const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
-
-    try {
-        const docSnap = await getDoc(isiMateriRef);
-        
-        if (docSnap.exists()) {
-            await updateDoc(isiMateriRef, {
-                isiMateri: contentValue,
-                teksHint: hintValue,
-                url3DObject: url3DValue
-            });
-            console.log("Document successfully updated!");
-        } else {
-            await setDoc(isiMateriRef, {
-                isiMateri: contentValue,
-                teksHint: hintValue,
-                url3DObject: url3DValue
-            });
-            console.log("Document successfully created!");
+            return url; // Return the original URL if it's not a GitHub URL
         }
 
-        // Show success message after the form is submitted
-        const successMessage = document.getElementById('successMessage');
-        successMessage.classList.remove('hidden');
-        setTimeout(() => {
-            successMessage.classList.add('hidden');
-        }, 3000);  // Hide message after 3 seconds
 
-    } catch (error) {
-        console.error("Error saving document: ", error);
-    }
-});
+        document.getElementById('contentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const contentValue = quill.root.innerHTML;  // Get content from the Quill editor
+            const hintValue = document.getElementById('hintInput').value;  // Get hint text
+            let url3DValue = document.getElementById('url3DInput').value;  // Get URL 3D Object
+
+            // Convert the URL if it's a GitHub link
+            url3DValue = convertToJsDelivr(url3DValue);
+
+            // Determine the document reference with teksKolom as the document ID
+            const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
+
+            try {
+                const docSnap = await getDoc(isiMateriRef);
+
+                if (docSnap.exists()) {
+                    await updateDoc(isiMateriRef, {
+                        isiMateri: contentValue,
+                        teksHint: hintValue,
+                        url3DObject: url3DValue
+                    });
+                    console.log("Document successfully updated!");
+                } else {
+                    await setDoc(isiMateriRef, {
+                        isiMateri: contentValue,
+                        teksHint: hintValue,
+                        url3DObject: url3DValue
+                    });
+                    console.log("Document successfully created!");
+                }
+
+                // Show success message after the form is submitted
+                const successMessage = document.getElementById('successMessage');
+                successMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    successMessage.classList.add('hidden');
+                }, 3000);  // Hide message after 3 seconds
+
+            } catch (error) {
+                console.error("Error saving document: ", error);
+            }
+        });
 
 
         displaySubjects();
     </script>
-    
+
 </body>
+
 </html>
