@@ -5,122 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Pertanyaan</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        body {
-    font-family: Arial, sans-serif;
-    background-color: #e0e0e0;
-    margin: 0;
-    padding: 0;
-}
-
-.page-container {
-    max-width: 900px;
-    width: 100%;
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    margin: 20px auto; /* Center container vertically */
-    overflow-y: auto; /* Enable scrolling if content overflows */
-}
-
-
-        header, nav, .container {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        header {
-            margin-bottom: 20px;
-        }
-
-        nav a {
-            margin: 0 10px;
-            color: #f8f9f9;
-            text-decoration: none;
-        }
-
-
-        .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1, h2, h3 {
-            color: #333;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
-        th {
-            background-color: #edf1eb;
-        }
-
-        button {
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        #formContainer {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        .form-actions {
-            text-align: right;
-            margin-top: 15px;
-        }
-
-        .success-message {
-            color: green;
-            margin-top: 10px;
-        }
-    </style>
 </head>
 <body>
-
     <div class="page-container">
         <header>
             <h1>Tambah Pertanyaan</h1>
@@ -128,7 +14,8 @@
 
         <nav>
             <a href="index.html">Dashboard</a>
-            <a href="isimateri.html">Isi Materi</a>
+            <a href="isimateri.html" id="isiMateriLink">Isi Materi</a>
+            <a href="quiz.html" id="quizLink">Quiz</a>
         </nav>
 
         <div class="container">
@@ -136,7 +23,7 @@
             <table id="subjectTable">
                 <thead>
                     <tr>
-                        <th style="color: #007BFF;">Nama Mata Pelajaran</th>
+                        <th>Nama Mata Pelajaran</th>
                     </tr>
                 </thead>
                 <tbody id="subjectTableBody">
@@ -149,8 +36,8 @@
                 <table id="subtopicTable">
                     <thead>
                         <tr>
-                            <th style="color: #007BFF;">Judul Sub Materi</th>
-                            <th style="color: #007BFF;">Teks Kolom</th>
+                            <th>Judul Sub Materi</th>
+                            <th>Teks Kolom</th>
                         </tr>
                     </thead>
                     <tbody id="subtopicTableBody">

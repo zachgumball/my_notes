@@ -135,7 +135,6 @@ class _LeaderboardViewsState extends State<LeaderboardViews>
                 borderColor = Colors.transparent;
               }
 
-              // Check if this is the current user to apply animation
               bool isCurrentUser = currentUserRank == index;
 
               return AnimatedBuilder(
@@ -162,7 +161,7 @@ class _LeaderboardViewsState extends State<LeaderboardViews>
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 18, // Increased font size
+                            fontSize: 18,
                           ),
                         ),
                       ),
@@ -171,14 +170,14 @@ class _LeaderboardViewsState extends State<LeaderboardViews>
                         style: TextStyle(
                           fontWeight:
                               index < 3 ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 18, // Increased font size for name
+                          fontSize: 18,
                         ),
                       ),
                       trailing: Text(
                         '$totalScore',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18, // Increased font size for score
+                          fontSize: 18,
                         ),
                       ),
                     ),

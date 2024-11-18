@@ -86,6 +86,7 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   String _name = '';
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -336,6 +337,33 @@ class _NotesViewState extends State<NotesView> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.leaderboard),
+            label: 'Ranking',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        onTap: (index) async {
+          setState(() {
+            _selectedIndex = index;
+          });
+
+          if (index == 1) {
+            // Navigasi ke halaman leaderboard dan kembali ke ikon Home setelahnya
+            await Navigator.of(context).pushNamed(leaderboardRoute);
+            setState(() {
+              _selectedIndex = 0;
+            });
+          }
+        },
       ),
     );
   }

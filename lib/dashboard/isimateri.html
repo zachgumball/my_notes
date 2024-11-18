@@ -5,179 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Isi Materi</title>
     <link rel="stylesheet" href="styles.css">
-
-    <!-- Quill CSS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-            height: 100vh;
-        }
-        .success-message {
-    color: green;
-    margin-top: 10px;
-    text-align: center;
-    display: none; /* Start hidden */
-    padding: 10px;
-    background-color: #d4edda;
-    border-radius: 5px;
-    border: 1px solid #c3e6cb;
-}
-
-
-        .main-container {
-            width: 90%;
-            max-width: 800px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            background-color: #4CAF50;
-            color: white;
-            padding: 20px;
-            border-radius: 8px 8px 0 0;
-        }
-
-        nav {
-    display: flex;
-    justify-content: center;
-    background-color: #333;
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
-    gap: 10px;
-    position: fixed; /* Fix the navbar at the top */
-    top: 0;          /* Align the navbar to the top */
-    left: 0;         /* Align the navbar to the left */
-    width: 100%;     /* Make the navbar full width */
-    z-index: 1000;   /* Ensure the navbar stays above other content */
-}
-
-body {
-    padding-top: 50px; /* Add padding to the body to prevent content from being hidden behind the navbar */
-}
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 10px 15px;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        nav a:hover {
-            background-color: #555;
-        }
-
-        h1, h2, h3 {
-            color: #333;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
-        th {
-            background-color: #edf1eb;
-            color: #007BFF;
-        }
-
-        button {
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        #formContainer {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        #contentInput {
-            height: 500px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-
-        textarea, input[type="url"] {
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            resize: vertical;
-        }
-
-        textarea:focus, input[type="url"]:focus {
-            outline: none;
-            border-color: #007BFF;
-        }
-
-        .form-actions {
-            text-align: right;
-            margin-top: 15px;
-        }
-
-        .success-message {
-            color: green;
-            margin-top: 10px;
-            text-align: center;
-            display: none;
-        }
-    </style>
 </head>
 <body>
-    <div class="main-container">
+    <div class="page-container">
         <header>
             <h1>Isi Materi</h1>
         </header>
 
         <nav>
             <a href="index.html">Dashboard</a>
-            <a href="quiz.html">Quiz</a>
+            <a href="isimateri.html" id="isiMateriLink">Isi Materi</a>
+            <a href="quiz.html" id="quizLink">Quiz</a>
         </nav>
 
         <div class="container">
@@ -225,7 +64,7 @@ body {
                         <button type="submit">Simpan</button>
                     </div>
 
-                    <p id="successMessage" class="success-message">Isi materi berhasil disimpan!</p>
+                    <p id="successMessage" class="success-message hidden">Isi materi berhasil disimpan!</p>
                 </form>
             </div>
         </div>
@@ -363,49 +202,50 @@ async function loadExistingContent(teksKolom) {
 }
 
         
-        document.getElementById('contentForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            
-            const contentValue = quill.root.innerHTML;  // Get content from the Quill editor
-            const hintValue = document.getElementById('hintInput').value;  // Get hint text
-            let url3DValue = document.getElementById('url3DInput').value;  // Get URL 3D Object
+document.getElementById('contentForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    
+    const contentValue = quill.root.innerHTML;  // Get content from the Quill editor
+    const hintValue = document.getElementById('hintInput').value;  // Get hint text
+    let url3DValue = document.getElementById('url3DInput').value;  // Get URL 3D Object
 
-            // Convert the URL if it's a GitHub link
-            url3DValue = convertToJsDelivr(url3DValue);
+    // Convert the URL if it's a GitHub link
+    url3DValue = convertToJsDelivr(url3DValue);
 
-            // Determine the document reference with teksKolom as the document ID
-            const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
+    // Determine the document reference with teksKolom as the document ID
+    const isiMateriRef = doc(db, 'mata_pelajaran', selectedSubjectId, 'sub_materi', selectedSubtopicId, 'isi_materi', teksKolom);
 
-            try {
-                const docSnap = await getDoc(isiMateriRef);
-                
-                if (docSnap.exists()) {
-                    await updateDoc(isiMateriRef, {
-                        isiMateri: contentValue,
-                        teksHint: hintValue,
-                        url3DObject: url3DValue
-                    });
-                    console.log("Document successfully updated!");
-                } else {
-                    await setDoc(isiMateriRef, {
-                        isiMateri: contentValue,
-                        teksHint: hintValue,
-                        url3DObject: url3DValue
-                    });
-                    console.log("Document successfully created!");
-                }
+    try {
+        const docSnap = await getDoc(isiMateriRef);
+        
+        if (docSnap.exists()) {
+            await updateDoc(isiMateriRef, {
+                isiMateri: contentValue,
+                teksHint: hintValue,
+                url3DObject: url3DValue
+            });
+            console.log("Document successfully updated!");
+        } else {
+            await setDoc(isiMateriRef, {
+                isiMateri: contentValue,
+                teksHint: hintValue,
+                url3DObject: url3DValue
+            });
+            console.log("Document successfully created!");
+        }
 
-                const successMessage = document.getElementById('successMessage');
-                successMessage.classList.remove('hidden');
-                successMessage.style.display = 'block';
-                setTimeout(() => {
-                    successMessage.style.display = 'none';
-                }, 3000);
+        // Show success message after the form is submitted
+        const successMessage = document.getElementById('successMessage');
+        successMessage.classList.remove('hidden');
+        setTimeout(() => {
+            successMessage.classList.add('hidden');
+        }, 3000);  // Hide message after 3 seconds
 
-            } catch (error) {
-                console.error("Error saving document: ", error);
-            }
-        });
+    } catch (error) {
+        console.error("Error saving document: ", error);
+    }
+});
+
 
         displaySubjects();
     </script>
