@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div class="page-container">
+        <header>
+            <h1>Dashboard Mari BelajAR</h1>
+            <img src="icon.png" alt="logo">
+        </header>
+
+        <nav>
+            <a href="#" id="addSubjectLink">Tambahkan Mata Pelajaran</a>
+            <a href="#" id="addSubtopicLink">Tambahkan Sub Materi</a>
+            <a href="isimateri.html" id="isiMateriLink">Isi Materi</a>
+            <a href="quiz.html" id="quizLink">Quiz</a>
+        </nav>
+
+        <div class="container">
+            <!-- Halaman Tambah Mata Pelajaran -->
+            <div id="addSubjectPage" class="visible">
+                <h2>Tambah Mata Pelajaran</h2>
+                <form id="subjectForm">
+                    <input type="text" id="nama" placeholder="Nama Mata Pelajaran" required>
+                    <input type="text" id="ikon" placeholder="Ikon URL" required>
+                    <legend style="color: gray;">
+                        <small><span style="color: red;">*</span> Disarankan gambar ekstensi .png transparan</small>
+                    </legend>
+                    <br>
+                    <label for="warna">Warna Kolom:</label>
+                    <div id="colorPicker" style="display: flex; align-items: center;">
+                        <input type="color" id="warna" value="#FF5733"
+                            style="width: 40px; height: 40px; padding: 0; border: none; outline: none;" />
+                    </div>
+                    <button type="submit">Tambah Mata Pelajaran</button>
+                </form>
+                <div id="message"></div>
+                <!-- Tabel Mata Pelajaran yang sudah ada -->
+                <h3>Daftar Mata Pelajaran</h3>
+                <table id="subjectTableDisplay">
+                    <thead>
+                        <tr>
+                            <th>Nama Mata Pelajaran</th>
+                            <th>Ikon</th>
+                            <th>Warna Kolom</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectTableBodyDisplay">
+                        <!-- Data akan diisi dengan Javascript -->
+                    </tbody>
+                </table>
+
+            </div>
+
+            <!-- Halaman Tabel Mata Pelajaran untuk Sub Materi -->
+            <div id="addSubtopicPage" class="hidden">
+                <h2>Pilih Mata Pelajaran</h2>
+                <table id="subjectTable">
+                    <thead>
+                        <tr>
+                            <th>Nama Mata Pelajaran</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectTableBody">
+                        <!-- Data akan diisi dengan Javascript -->
+                    </tbody>
+                </table>
+                <div id="subtopicMessage"></div>
+            </div>
+
+            <!-- Halaman Tambah Sub Materi -->
+            <div id="subtopicDetailPage" class="hidden">
+                <h2>Tambah Sub Materi</h2>
+                <h3 id="selectedSubjectName"></h3> <!-- Elemen untuk menampilkan nama mata pelajaran -->
+                <div id="subtopicDetailSection" class="hidden">
+                    <h4>Detail Sub Materi</h4>
+                    <p id="subtopicJudulText" class="detail-text"></p>
+                    <p id="subtopicGambarText" class="detail-text"></p>
+                </div>
+                <form id="subtopicDetailForm" class="visible">
+                    <input type="text" id="subtopicJudul" placeholder="Judul Sub Materi" required>
+                    <input type="text" id="subtopicGambar" placeholder="URL Gambar" required>
+                    <div id="additionalColumns"></div> <!-- Tempat untuk kolom tambahan -->
+                    <button type="submit" style="background-color: blue;">Simpan Sub Materi</button>
+                    <button type="button" id="addColumnButton">Tambah Kolom</button>
+                </form>
+                <button type="button" id="addColumnButton">Tambah Kolom</button>
+                <div id="subtopicMessage"></div>
+                <h3>Daftar Sub Materi</h3>
+                <table id="subtopicTable">
+                    <thead>
+                        <tr>
+                            <th>Judul Sub Materi</th>
+                            <th>Gambar</th>
+                            <th>Kolom Tambahan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subtopicTableBody">
+                        <!-- Data akan diisi dengan Javascript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <p id="userName"> Selamat datang,</p>
+        <button id="logoutButton">Logout</button>
+
+        <script type="module">
+            // Konfigurasi Firebase
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+            import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+            import { getFirestore, collection, addDoc, setDoc, doc, getDocs, getDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyDTdva2L7ofrImgJ3OmFwskWEZqaZbuRoE",
+                authDomain: "mynotes-zynext.firebaseapp.com",
+                projectId: "mynotes-zynext",
+                storageBucket: "mynotes-zynext.appspot.com",
+                messagingSenderId: "802670210215",
+                appId: "1:802670210215:web:cedfff9cba00c3d798bf82"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth();
+
+            // Mendapatkan data pengguna yang sedang login
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    const email = user.email; // Email pengguna yang sedang login
+
+                    // Query ke Firestore untuk mendapatkan nama pengguna
+                    const adminDataRef = collection(db, "admin_data");
+                    const q = query(adminDataRef, where("email", "==", email));
+
+                    getDocs(q)
+                        .then((querySnapshot) => {
+                            if (!querySnapshot.empty) {
+                                // Ambil dokumen pertama yang ditemukan
+                                querySnapshot.forEach((doc) => {
+                                    const data = doc.data();
+                                    document.getElementById("userName").textContent = `Selamat datang, ${data.name}`;
+                                });
+                            } else {
+                                document.getElementById("userName").textContent = "Selamat datang, Admin";
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Gagal mengambil data pengguna:", error.message);
+                        });
+                } else {
+                    // Pengguna tidak login, arahkan kembali ke halaman login
+                    window.location.href = "index.html";
+                }
+            });
+
+            // Tombol logout
+            document.getElementById("logoutButton").addEventListener("click", function () {
+                signOut(auth).then(() => {
+                    window.location.href = "index.html"; // Arahkan kembali ke halaman login
+                }).catch((error) => {
+                    console.error("Logout gagal: " + error.message);
+                });
+            });
+
+
+            // Fungsi untuk menambahkan mata pelajaran
+            document.getElementById('subjectForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const nama = document.getElementById('nama').value;
+                const ikon = document.getElementById('ikon').value;
+                const warna = document.getElementById('warna').value;
+
+                try {
+                    await setDoc(doc(db, 'mata_pelajaran', nama), {
+                        ikon: ikon,
+                        warna: warna,
+                        nama: nama
+                    });
+                    document.getElementById('message').innerText = 'Mata pelajaran berhasil ditambahkan!';
+                    document.getElementById('subjectForm').reset();
+                } catch (error) {
+                    console.error('Error adding document: ', error);
+                    document.getElementById('message').innerText = 'Terjadi kesalahan saat menambahkan mata pelajaran.';
+                }
+            });
+
+            // Fungsi untuk menampilkan tabel mata pelajaran
+            document.getElementById('addSubtopicLink').addEventListener('click', async () => {
+                document.getElementById('addSubtopicPage').classList.add('visible');
+                document.getElementById('addSubtopicPage').classList.remove('hidden');
+                document.getElementById('addSubjectPage').classList.add('hidden');
+                document.getElementById('addSubjectPage').classList.remove('visible');
+
+                // Fungsi untuk kembali ke halaman Tambah Mata Pelajaran
+                document.getElementById('addSubjectLink').addEventListener('click', () => {
+                    document.getElementById('addSubjectPage').classList.add('visible');
+                    document.getElementById('addSubjectPage').classList.remove('hidden');
+                    document.getElementById('addSubtopicPage').classList.add('hidden');
+                    document.getElementById('addSubtopicPage').classList.remove('visible');
+                    document.getElementById('subtopicDetailPage').classList.add('hidden');
+                    document.getElementById('subtopicDetailPage').classList.remove('visible');
+                });
+
+                const subjectTableBody = document.getElementById('subjectTableBody');
+                subjectTableBody.innerHTML = '';
+
+                const querySnapshot = await getDocs(collection(db, 'mata_pelajaran'));
+                querySnapshot.forEach((doc) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td><button class="select-subject" data-id="${doc.id}">${doc.id}</button></td>`;
+                    subjectTableBody.appendChild(row);
+                });
+
+                // Penanganan tombol pilih mata pelajaran
+                const selectButtons = document.querySelectorAll('.select-subject');
+                selectButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const subjectId = button.getAttribute('data-id');
+                        showSubtopicForm(subjectId);
+                    });
+                });
+            });
+
+            // Fungsi untuk menampilkan form sub materi
+            async function showSubtopicForm(subjectId) {
+                // Display the selected subject's name in the heading
+                document.getElementById('selectedSubjectName').textContent = subjectId;
+
+                // Populate the "Judul Sub Materi" input with the selected subject name
+                document.getElementById('subtopicJudul').value = subjectId;
+
+                document.getElementById('addSubtopicPage').classList.add('hidden');
+                document.getElementById('subtopicDetailPage').classList.remove('hidden');
+
+                // Reset and clear additional columns
+                document.getElementById('additionalColumns').innerHTML = '';
+
+                // Retrieve subtopic details as before
+                const subtopicRef = collection(db, 'mata_pelajaran', subjectId, 'sub_materi');
+                const subtopicSnapshot = await getDocs(subtopicRef);
+                const subtopicTableBody = document.getElementById('subtopicTableBody');
+                subtopicTableBody.innerHTML = '';
+
+                if (!subtopicSnapshot.empty) {
+                    subtopicSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const subtopicId = doc.id;
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                <td>${subtopicId}</td>
+                <td><img src="${data.gambar}" alt="${subtopicId}" style="width: 50px; height: auto;"></td>
+                <td>
+                    <ul>
+                        ${Object.keys(data).filter(key => key.startsWith('teks_kolom')).map((key, index) => `
+                            <li>${data[key]} <br>
+                            <img src="${data[`gambar_kolom${index + 1}`] || ''}" alt="Gambar Kolom ${index + 1}" style="width: 50px; height: auto;"></li>
+                        `).join('')}
+                    </ul>
+                </td>
+                <td>
+                    <button class="edit-subtopic" data-id="${subtopicId}">Edit</button>
+                    <button class="delete-subtopic" data-id="${subtopicId}">Hapus</button>
+                </td>
+            `;
+                        subtopicTableBody.appendChild(row);
+                    });
+                }
+
+                // Penanganan tombol edit dan hapus
+                const editButtons = document.querySelectorAll('.edit-subtopic');
+                const deleteButtons = document.querySelectorAll('.delete-subtopic');
+
+                editButtons.forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const subtopicId = button.getAttribute('data-id');
+                        const subtopicRef = doc(db, 'mata_pelajaran', subjectId, 'sub_materi', subtopicId);
+                        const subtopicDoc = await getDoc(subtopicRef);
+                        if (subtopicDoc.exists()) {
+                            const data = subtopicDoc.data();
+                            // Populate form fields with existing data
+                            document.getElementById('subtopicJudul').value = subtopicId; // Judul sub materi
+                            document.getElementById('subtopicGambar').value = data.gambar; // Gambar sub materi
+
+                            // Populate additional columns if they exist
+                            let i = 1;
+                            while (data[`teks_kolom${i}`] !== undefined || data[`gambar_kolom${i}`] !== undefined) {
+                                const teksKolom = data[`teks_kolom${i}`];
+                                const gambarKolom = data[`gambar_kolom${i}`];
+                                if (teksKolom || gambarKolom) {
+                                    document.getElementById('additionalColumns').innerHTML += `
+                                    <div>
+                                        <input type="text" id="teks_kolom${i}" placeholder="Teks Kolom ${i}" value="${teksKolom || ''}">
+                                        <input type="text" id="gambar_kolom${i}" placeholder="Gambar Kolom ${i}" value="${gambarKolom || ''}">
+                                    </div>
+                                `;
+                                }
+                                i++;
+                            }
+
+                            // Show the form to edit
+                            document.getElementById('subtopicDetailForm').classList.remove('hidden');
+                        }
+                    });
+                });
+
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const subtopicId = button.getAttribute('data-id');
+                        const confirmDelete = confirm('Anda yakin ingin menghapus subtopik ini?');
+                        if (confirmDelete) {
+                            try {
+                                await deleteDoc(doc(db, 'mata_pelajaran', subjectId, 'sub_materi', subtopicId));
+                                document.getElementById('subtopicMessage').innerText = 'Sub materi berhasil dihapus!';
+                                showSubtopicForm(subjectId); // Refresh the subtopic list
+                            } catch (error) {
+                                console.error('Error deleting document: ', error);
+                                document.getElementById('subtopicMessage').innerText = 'Terjadi kesalahan saat menghapus sub materi.';
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Penanganan form untuk menyimpan sub materi
+            document.getElementById('subtopicDetailForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const subjectId = document.getElementById('selectedSubjectName').textContent;
+                const subtopicId = document.getElementById('subtopicJudul').value;
+                const subtopicGambar = document.getElementById('subtopicGambar').value;
+
+                // Persiapkan data kolom tambahan
+                const additionalData = {};
+                let i = 1;
+                while (document.getElementById(`teks_kolom${i}`) !== null || document.getElementById(`gambar_kolom${i}`) !== null) {
+                    const teksKolom = document.getElementById(`teks_kolom${i}`)?.value || '';
+                    const gambarKolom = document.getElementById(`gambar_kolom${i}`)?.value || '';
+                    if (teksKolom) additionalData[`teks_kolom${i}`] = teksKolom;
+                    if (gambarKolom) additionalData[`gambar_kolom${i}`] = gambarKolom;
+                    i++;
+                }
+
+                // Simpan data sub materi
+                try {
+                    await setDoc(doc(db, 'mata_pelajaran', subjectId, 'sub_materi', subtopicId), {
+                        gambar: subtopicGambar,
+                        ...additionalData
+                    });
+                    document.getElementById('subtopicMessage').innerText = 'Sub materi berhasil disimpan!';
+                    document.getElementById('subtopicDetailForm').reset();
+                    showSubtopicForm(subjectId); // Refresh the subtopic list
+                } catch (error) {
+                    console.error('Error saving document: ', error);
+                    document.getElementById('subtopicMessage').innerText = 'Terjadi kesalahan saat menyimpan sub materi.';
+                }
+            });
+
+            // Tambah kolom baru
+            document.getElementById('addColumnButton').addEventListener('click', () => {
+                const newColumn = document.createElement('div');
+                const index = document.querySelectorAll('#additionalColumns > div').length + 1;
+                newColumn.innerHTML = `
+                <input type="text" id="teks_kolom${index}" placeholder="Teks Kolom ${index}">
+                <input type="text" id="gambar_kolom${index}" placeholder="Gambar Kolom ${index}">
+            `;
+                document.getElementById('additionalColumns').appendChild(newColumn);
+            });
+
+            // Fungsi untuk menampilkan tabel mata pelajaran yang sudah ada
+            async function displaySubjects() {
+                const subjectTableBodyDisplay = document.getElementById('subjectTableBodyDisplay');
+                subjectTableBodyDisplay.innerHTML = '';
+
+                const querySnapshot = await getDocs(collection(db, 'mata_pelajaran'));
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+            <td>${doc.id}</td> 
+            <td><img src="${data.ikon}" alt="${data.nama}" style="width: 50px; height: auto;"></td>
+            <td><div style="background-color: ${data.warna}; width: 50px; height: 50px;"></div></td>
+            <td>
+                <button class="edit-subject" data-id="${doc.id}">Edit</button>
+                <button class="delete-subject" data-id="${doc.id}">Hapus</button>
+            </td>
+        `;
+                    subjectTableBodyDisplay.appendChild(row);
+                });
+
+                // Penanganan tombol edit dan hapus
+                const editButtons = document.querySelectorAll('.edit-subject');
+                const deleteButtons = document.querySelectorAll('.delete-subject');
+
+                editButtons.forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const subjectId = button.getAttribute('data-id');
+                        const subjectRef = doc(db, 'mata_pelajaran', subjectId);
+                        const subjectDoc = await getDoc(subjectRef);
+                        if (subjectDoc.exists()) {
+                            const data = subjectDoc.data();
+                            // Populate form fields with existing data
+                            document.getElementById('nama').value = data.nama;
+                            document.getElementById('ikon').value = data.ikon;
+                            document.getElementById('warna').value = data.warna;
+                            document.getElementById('message').innerText = '';
+
+                            // Disable the 'nama' input field
+                            document.getElementById('nama').disabled = true;
+
+                            // Create and display the warning message below the 'nama' input field
+                            let warningMessage = document.getElementById('warning-message');
+                            if (!warningMessage) {
+                                warningMessage = document.createElement('div');
+                                warningMessage.id = 'warning-message';
+                                warningMessage.style.color = 'red';  // Style the warning text
+                                warningMessage.innerText = '* Field Nama Mata Pelajaran tidak bisa di ubah';
+                                document.getElementById('nama').parentNode.appendChild(warningMessage);
+                            }
+
+                            // Change the button to "Simpan Perubahan"
+                            const saveButton = document.querySelector('#subjectForm button');
+                            saveButton.innerText = 'Simpan Perubahan';
+                            saveButton.setAttribute('id', 'saveChanges');
+
+                            // Update the submit handler for saving changes
+                            document.getElementById('saveChanges').addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                const nama = document.getElementById('nama').value;
+                                const ikon = document.getElementById('ikon').value;
+                                const warna = document.getElementById('warna').value;
+
+                                try {
+                                    await setDoc(subjectRef, { ikon, warna, nama });
+                                    document.getElementById('message').innerText = 'Perubahan berhasil disimpan!';
+                                    displaySubjects();  // Refresh the list of subjects
+                                } catch (error) {
+                                    console.error('Error updating document: ', error);
+                                    document.getElementById('message').innerText = 'Terjadi kesalahan saat menyimpan perubahan.';
+                                }
+                            });
+                        }
+                    });
+                });
+
+
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const subjectId = button.getAttribute('data-id');
+                        const confirmDelete = confirm('Anda yakin ingin menghapus mata pelajaran ini?');
+                        if (confirmDelete) {
+                            try {
+                                await deleteDoc(doc(db, 'mata_pelajaran', subjectId));
+                                document.getElementById('message').innerText = 'Mata pelajaran berhasil dihapus!';
+                                displaySubjects();  // Refresh the list of subjects
+                            } catch (error) {
+                                console.error('Error deleting document: ', error);
+                                document.getElementById('message').innerText = 'Terjadi kesalahan saat menghapus mata pelajaran.';
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Menambahkan event listener untuk menampilkan data setelah form mata pelajaran disubmit
+            document.getElementById('subjectForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const nama = document.getElementById('nama').value;
+                const ikon = document.getElementById('ikon').value;
+                const warna = document.getElementById('warna').value;
+
+                try {
+                    // Tambah data mata pelajaran baru
+                    await setDoc(doc(db, 'mata_pelajaran', nama), { ikon, warna, nama });
+                    document.getElementById('message').innerText = 'Mata pelajaran berhasil ditambahkan!';
+                    document.getElementById('subjectForm').reset();
+                    displaySubjects();  // Refresh the subject list after adding new one
+                } catch (error) {
+                    console.error('Error adding document: ', error);
+                    document.getElementById('message').innerText = 'Terjadi kesalahan saat menambahkan mata pelajaran.';
+                }
+            });
+
+            // Panggil displaySubjects untuk pertama kali saat halaman dimuat
+            window.onload = displaySubjects;
+
+        </script>
+</body>
+
+</html>

@@ -39,6 +39,8 @@ class _QuizPageState extends State<QuizPage> {
   void _initializeQuiz() {
     score = 0;
     lostScore = 0;
+    correctQuestionsCount = 0;
+    incorrectQuestionsCount = 0;
 
     // Mengambil soal-soal dari database dan mempersiapkan list jawaban
     questionsFuture = fetchQuestions().then((questions) {
@@ -56,8 +58,10 @@ class _QuizPageState extends State<QuizPage> {
       if (countdownSeconds > 0) {
         setState(() {
           countdownSeconds--;
-          score -= 2;
-          lostScore += 2;
+          if (countdownSeconds <= 50) {
+            score -= 2; // Kurangi skor setiap detiknya setelah 10 detik
+            lostScore += 2; // Akumulasi skor yang hilang
+          }
         });
       } else {
         timer.cancel();
@@ -151,9 +155,21 @@ class _QuizPageState extends State<QuizPage> {
     }
   }
 
-// Mengakhiri kuis dan menampilkan dialog hasil skor
+  // Variabel untuk menyimpan jumlah soal yang dijawab benar dan salah
+  int correctQuestionsCount = 0;
+  int incorrectQuestionsCount = 0;
+  // Mengakhiri kuis dan menampilkan dialog hasil skor
   void _finishQuiz(BuildContext context) {
     countdownTimer?.cancel();
+
+    // Hitung jumlah soal yang benar dan salah
+    for (int i = 0; i < correctAnswers.length; i++) {
+      if (correctAnswers[i]) {
+        correctQuestionsCount++;
+      } else {
+        incorrectQuestionsCount++;
+      }
+    }
 
     _updateScoreInFirestore(score).then((_) {
       showDialog(
@@ -199,6 +215,22 @@ class _QuizPageState extends State<QuizPage> {
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Display correct and incorrect questions count
+                  Text(
+                    'Benar: $correctQuestionsCount',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Color.fromARGB(255, 5, 235, 55),
+                    ),
+                  ),
+                  Text(
+                    'Salah: $incorrectQuestionsCount',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Colors.red,
                     ),
                   ),
                   const SizedBox(height: 20),
